@@ -1,5 +1,7 @@
 import React, {useState} from 'react'
+import { useNavigate } from 'react-router-dom';
 import Rarrow from '../../images/right-arrow.png';
+import kakao from '../../images/KakaoLogin.png';
 
 type LoginComponentProps = {
     handleModeChange : ( mode : string)=>void;
@@ -27,8 +29,8 @@ const LoginComp:React.FC<LoginComponentProps> = ({handleModeChange}) => {
                         <LoginCard mode="partner" handleLoginModeChange={handleLoginModeChange} />
                         <LoginCard mode="client" handleLoginModeChange={handleLoginModeChange}/>
                     </div>
-                    <div className='justify-center h-20 text-center'>
-                        여기에 카카오 로그인 버튼 붙일 예정
+                    <div className='flex justify-center h-20'>
+                        <img src={kakao} alt="kakao" className='w-64 h-16 cursor-pointer rounded-3xl'/>
                     </div>
                     <div onClick={() => handleModeChange('register')} className='text-center cursor-pointer text-custom-blue'>
                         아직 계정이 없으신가요?
@@ -67,6 +69,24 @@ type LoginInputProps = {
 const LoginInput:React.FC<LoginInputProps> = ({mode, handleLoginModeChange}) => {
     const [userId, setUsesrId] = useState<string>('');
     const [password, setPassword] = useState<string>('');
+    const isUserIdValid = /^[a-zA-Z]+$/.test(userId); // 영어만 허용
+    const isPasswordValid = password.length >= 8; // 8자리 이상
+    const navigate = useNavigate(); // useNavigate 훅 사용
+    
+    const handleLoginClick = () =>{
+        if(!isUserIdValid){
+            alert('아이디를 입력하십시오!');
+            return;
+        }
+        if(!isPasswordValid){
+            alert('비밀번호를 확인하세요! 8자리 이상입니다.')
+            return;
+        }
+        if(mode===1){
+            navigate('/main/partner');
+        }
+        else navigate('/main/client');
+    }
 
     return (
         <div className='w-[100%] h-[100%] flex justify-center items-center'>
@@ -90,7 +110,7 @@ const LoginInput:React.FC<LoginInputProps> = ({mode, handleLoginModeChange}) => 
                 <div className='flex flex-row w-[70%] justify-evenly mt-10'>
                     <button onClick={()=>handleLoginModeChange(0)} className='items-center justify-center w-32 h-12 bg-white drop-shadow-xl rounded-3xl text-custom-blue'>
                         뒤로가기</button>
-                    <button onClick={()=>handleLoginModeChange(0)} className='items-center justify-center w-32 h-12 bg-white drop-shadow-xl rounded-3xl text-custom-blue'>
+                    <button onClick={handleLoginClick} className='items-center justify-center w-32 h-12 bg-white drop-shadow-xl rounded-3xl text-custom-blue'>
                         로그인</button>
                 </div>
             </div>

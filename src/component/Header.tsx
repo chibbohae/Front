@@ -7,13 +7,20 @@ const Header = () => {
     const location = useLocation(); // useLocation 훅 사용
 
     const handleLogoClick = () =>{
-      navigate('/main');
+      switch (location.pathname) {
+        case '/main/partner':
+          navigate('/main/partner');
+          return;
+        default :
+          navigate('/main/client');
+      }
     }
+    
     const handleLoginClick = () => {
       navigate('/login'); // /login 경로로 이동
     };
 
-    // URL 경로에 따라 헤더 내용 변경
+    // URL 경로에 따라 헤더 내용 변경 -> 사용자의 타입에 따라 바뀌는 걸로 변경하기
     const renderHeaderContent = () => {
         switch (location.pathname) {
             case '/main/partner':
