@@ -11,7 +11,7 @@ const Header = () => {
 
     return (
       <div>
-        <header className="fixed top-0 left-0 right-0 flex items-center justify-between h-16 pl-10 pr-10 bg-white">
+        <header className="fixed top-0 left-0 right-0 flex items-center justify-between h-16 pl-10 pr-10 bg-white border-b">
           <img src={logo} className="w-32 h-16" alt="logo" />
           <button 
             className="w-32 h-12 border-2 border-custom-blue rounded-xl text-custom-blue"
