@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import logo from '../../images/sentosa-logo-nobg.png';
-import LoginComp from './LoginComponent';
-import RegisterComp from './RegisterComponent';
+import LoginComp from './LoginComp';
+import RegisterComp from './RegisterComp';
 
 const Login: React.FC = () => {
     const [mode, setMode] = useState<string>('login');

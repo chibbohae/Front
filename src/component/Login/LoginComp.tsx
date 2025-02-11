@@ -41,11 +41,33 @@ const LoginComp:React.FC<LoginComponentProps> = ({handleModeChange}) => {
     )
 }
 
+type INPUTProps = {
+    placeholder: string;
+    classname: string;
+    value: string; // 현재 입력값
+    onChange: (value: string) => void; // 입력값 변경 핸들러
+    type ?: string
+};
+const INPUT: React.FC<INPUTProps> = ({ placeholder, classname, value, onChange, type='text'}) => {
+    return (
+        <input
+            type={type}
+            placeholder={placeholder}
+            className={`${classname} border rounded-2xl drop-shadow-xl placeholder-custom-blue`}
+            value={value}
+            onChange={(e) => onChange(e.target.value)} // 입력값 변경 시 호출
+        />
+    );
+};
+
 type LoginInputProps = {
     mode : number
     handleLoginModeChange: (num:number)=>void;
 }
 const LoginInput:React.FC<LoginInputProps> = ({mode, handleLoginModeChange}) => {
+    const [userId, setUsesrId] = useState<string>('');
+    const [password, setPassword] = useState<string>('');
+
     return (
         <div className='w-[100%] h-[100%] flex justify-center items-center'>
             <div className='flex flex-col items-center justify-center w-2/3 shadow-lg shadow-custom-blue h-2/3 bg-custom-blue rounded-3xl'>
@@ -62,12 +84,8 @@ const LoginInput:React.FC<LoginInputProps> = ({mode, handleLoginModeChange}) => 
                 </div>
                 }
                 <div className='flex flex-col items-center h-32 justify-evenly'>
-                    <input 
-                        type="text" 
-                        className='w-64 h-10 border rounded-2xl drop-shadow-xl placeholder-custom-blue' placeholder='아이디'/>
-                    <input 
-                        type="text" 
-                        className='w-64 h-10 border rounded-2xl drop-shadow-xl placeholder-custom-blue' placeholder='비밀번호'/>
+                    <INPUT placeholder='아이디' classname='w-64 h-10' value={userId} onChange={setUsesrId} />
+                    <INPUT placeholder='비밀번호' classname='w-64 h-10' value={password} onChange={setPassword} type='password'/>
                 </div>
                 <div className='flex flex-row w-[70%] justify-evenly mt-10'>
                     <button onClick={()=>handleLoginModeChange(0)} className='items-center justify-center w-32 h-12 bg-white drop-shadow-xl rounded-3xl text-custom-blue'>
