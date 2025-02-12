@@ -1,6 +1,8 @@
 import React from 'react';
 import { useLocation } from 'react-router-dom';
 import Home from './Home';
+import Partner from './Partner/Partner';
+import Client from './Client';
 
 const Main: React.FC = () => {
     const location = useLocation();
@@ -9,9 +11,9 @@ const Main: React.FC = () => {
     const renderContent = () => {
         switch (location.pathname) {
             case '/main/partner':
-                return <div>파트너 화면 내용</div>; // 파트너 화면 내용
+                return <Partner/>; // 파트너 화면 내용
             case '/main/client':
-                return <div>클라이언트 화면 내용</div>; // 클라이언트 화면 내용
+                return <Client/>; // 클라이언트 화면 내용
             default:
                 return <Home/>; // 기본 내용 (선택된 경로가 없을 경우)
         }
@@ -23,5 +25,7 @@ const Main: React.FC = () => {
         </div>
     );
 };
+
+
 
 export default Main;

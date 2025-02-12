@@ -2,6 +2,7 @@ import React, {useState} from 'react'
 import { useNavigate } from 'react-router-dom';
 import Rarrow from '../../images/right-arrow.png';
 import kakao from '../../images/KakaoLogin.png';
+import INPUT from './INPUT';
 
 type LoginComponentProps = {
     handleModeChange : ( mode : string)=>void;
@@ -42,25 +43,6 @@ const LoginComp:React.FC<LoginComponentProps> = ({handleModeChange}) => {
         renderLogin()
     )
 }
-
-type INPUTProps = {
-    placeholder: string;
-    classname: string;
-    value: string; // 현재 입력값
-    onChange: (value: string) => void; // 입력값 변경 핸들러
-    type ?: string
-};
-const INPUT: React.FC<INPUTProps> = ({ placeholder, classname, value, onChange, type='text'}) => {
-    return (
-        <input
-            type={type}
-            placeholder={placeholder}
-            className={`${classname} border rounded-2xl drop-shadow-xl placeholder-custom-blue`}
-            value={value}
-            onChange={(e) => onChange(e.target.value)} // 입력값 변경 시 호출
-        />
-    );
-};
 
 type LoginInputProps = {
     mode : number

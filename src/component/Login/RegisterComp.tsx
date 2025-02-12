@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import Rarrow from '../../images/right-arrow.png';
 import kakao from '../../images/KakaoLogin.png';
+import INPUT from './INPUT';
 
 const options = [
     "백엔드 개발", "PM", "프론트엔드 개발", "프로덕트 디자인", "AI / ML", 
@@ -56,7 +57,7 @@ const RegisterComp:React.FC<RegisterComponentProps> = ({handleModeChange}) => {
                         <img src={kakao} alt="kakao" className='w-64 h-16 cursor-pointer rounded-3xl'/>
                     </div>
                     <div onClick={() => handleModeChange('register')} className='text-center cursor-pointer text-custom-blue'>
-                        아직 계정이 없으신가요?
+                        로그인 하러가기
                     </div>
                 </div>)
         }
@@ -65,26 +66,6 @@ const RegisterComp:React.FC<RegisterComponentProps> = ({handleModeChange}) => {
         renderLogin()
     )
 }
-
-//입력 컴포넌트
-type INPUTProps = {
-    placeholder: string;
-    classname: string;
-    value: string; // 현재 입력값
-    onChange: (value: string) => void; // 입력값 변경 핸들러
-    type ?: string
-};
-const INPUT: React.FC<INPUTProps> = ({ placeholder, classname, value, onChange, type='text'}) => {
-    return (
-        <input
-            type={type}
-            placeholder={placeholder}
-            className={`${classname} border rounded-2xl drop-shadow-xl placeholder-custom-blue`}
-            value={value}
-            onChange={(e) => onChange(e.target.value)} // 입력값 변경 시 호출
-        />
-    );
-};
 
 //회원가입 입력 화면
 type RegInputProps = {

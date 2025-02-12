@@ -38,7 +38,7 @@ const Header = () => {
           <img src={logo} onClick={handleLogoClick} className="w-32 h-16" alt="logo" />
           {renderHeaderContent()} {/* 경로에 따라 헤더 내용 렌더링 */}
           <button 
-            className="w-32 h-12 border-2 border-custom-blue rounded-xl text-custom-blue"
+            className="w-32 h-12 transition-transform transform border-2 hover:scale-105 border-custom-blue rounded-xl text-custom-blue hover:bg-custom-blue/50"
             onClick={handleLoginClick}> {/* 클릭 시 handleLoginClick 호출 */}
             로그인
           </button>
