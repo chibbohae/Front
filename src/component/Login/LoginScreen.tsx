@@ -31,7 +31,7 @@ const Login: React.FC = () => {
             <div className='flex items-center w-1/3 h-screen'>
                 <img src={logo} alt="logo" onClick={handleLogoClick}/>
             </div>
-            <div className={`w-2/3 flex justify-center align-center h-screen transition-opacity duration-500 ${fadeIn ? 'opacity-100' : 'opacity-0'}`}>
+            <div className={`w-2/3 h-screen flex justify-center align-center h-screen transition-opacity duration-500 ${fadeIn ? 'opacity-100' : 'opacity-0'}`}>
                 {mode === 'login' ? (
                     <LoginComp handleModeChange={() => handleModeChange("register")}/>
                 ) : (

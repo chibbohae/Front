@@ -1,22 +1,21 @@
-import React from 'react'
-
 type INPUTProps = {
-    placeholder: string;
     classname: string;
-    value: string; // 현재 입력값
-    onChange: (value: string) => void; // 입력값 변경 핸들러
-    type ?: string
-};
-const INPUT: React.FC<INPUTProps> = ({ placeholder, classname, value, onChange, type='text'}) => {
+    placeholder: string;
+    value: string | number; // value를 string 또는 number로 받을 수 있게 수정
+    onChange: React.ChangeEventHandler<HTMLInputElement>; // onChange 타입 수정
+    type?: 'text' | 'password' | 'number'; // 숫자 타입 추가
+}
+
+const INPUT: React.FC<INPUTProps> = ({ classname, placeholder, value, onChange, type = 'text' }) => {
     return (
         <input
-            type={type}
+        className={`${classname} border rounded-2xl drop-shadow-xl placeholder-custom-blue`}
             placeholder={placeholder}
-            className={`${classname} border rounded-2xl drop-shadow-xl placeholder-custom-blue`}
             value={value}
-            onChange={(e) => onChange(e.target.value)} // 입력값 변경 시 호출
+            onChange={onChange}
+            type={type} // 'number' 타입 사용
         />
     );
-};
+}
 
 export default INPUT;

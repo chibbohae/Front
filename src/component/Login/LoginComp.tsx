@@ -2,6 +2,7 @@ import React, {useState} from 'react'
 import { useNavigate } from 'react-router-dom';
 import Rarrow from '../../images/right-arrow.png';
 import kakao from '../../images/KakaoLogin.png';
+import { loginPartner, loginClient, LoginRequest } from "../../api/auth";
 import INPUT from './INPUT';
 
 type LoginComponentProps = {
@@ -49,26 +50,48 @@ type LoginInputProps = {
     handleLoginModeChange: (num:number)=>void;
 }
 const LoginInput:React.FC<LoginInputProps> = ({mode, handleLoginModeChange}) => {
-    const [userId, setUsesrId] = useState<string>('');
-    const [password, setPassword] = useState<string>('');
-    const isUserIdValid = /^[a-zA-Z]+$/.test(userId); // 영어만 허용
-    const isPasswordValid = password.length >= 8; // 8자리 이상
+    const [loginId, setUsesrId] = useState<string>('');
+    const [loginPassword, setloginPassword] = useState<string>('');
     const navigate = useNavigate(); // useNavigate 훅 사용
     
-    const handleLoginClick = () =>{
-        if(!isUserIdValid){
-            alert('아이디를 입력하십시오!');
+    const handleLoginClick = async () => {
+        if (!loginId.match(/^[a-zA-Z]+$/)) {
+            alert("아이디를 입력하십시오!");
             return;
         }
-        if(!isPasswordValid){
-            alert('비밀번호를 확인하세요! 8자리 이상입니다.')
+        if (loginPassword.length < 8) {
+            alert("비밀번호를 확인하세요! 8자리 이상입니다.");
             return;
         }
-        if(mode===1){
-            navigate('/main/partner');
+    
+        try {
+            const requestData: LoginRequest = { loginId, loginPassword };
+            let response;
+        
+            if (mode === 1) {
+                // 멘토 로그인 API 호출
+                response = await loginPartner(requestData);
+            } else {
+                // 멘티 로그인 API 호출
+                response = await loginClient(requestData);
+            }
+        
+            // 토큰 저장
+            localStorage.setItem("accessToken", response.accessToken);
+            localStorage.setItem("refreshToken", response.refreshToken);
+
+    
+            // 역할에 따라 이동
+            if (mode === 1) {
+                navigate("/main/partner");
+            } else {
+                navigate("/main/client");
+            }
+        } catch (error) {
+            alert("로그인 실패! 아이디 또는 비밀번호를 확인하세요.");
+            console.error("로그인 오류:", error);
         }
-        else navigate('/main/client');
-    }
+    };
 
     return (
         <div className='w-[100%] h-[100%] flex justify-center items-center'>
@@ -86,8 +109,8 @@ const LoginInput:React.FC<LoginInputProps> = ({mode, handleLoginModeChange}) => 
                 </div>
                 }
                 <div className='flex flex-col items-center h-32 justify-evenly'>
-                    <INPUT placeholder='아이디' classname='w-64 h-10' value={userId} onChange={setUsesrId} />
-                    <INPUT placeholder='비밀번호' classname='w-64 h-10' value={password} onChange={setPassword} type='password'/>
+                    <INPUT placeholder='아이디' classname='w-64 h-10' value={loginId} onChange={(e)=>setUsesrId(e.target.value)} />
+                    <INPUT placeholder='비밀번호' classname='w-64 h-10' value={loginPassword} onChange={(e)=>setloginPassword(e.target.value)} type='password'/>
                 </div>
                 <div className='flex flex-row w-[70%] justify-evenly mt-10'>
                     <button onClick={()=>handleLoginModeChange(0)} className='items-center justify-center w-32 h-12 bg-white drop-shadow-xl rounded-3xl text-custom-blue'>
