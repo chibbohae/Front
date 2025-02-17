@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Rarrow from '../../images/right-arrow.png';
 import kakao from '../../images/KakaoLogin.png';
 import { loginPartner, loginClient, LoginRequest } from "../../api/auth";
-import INPUT from './INPUT';
+import INPUT from '../INPUT';
 
 type LoginComponentProps = {
     handleModeChange : ( mode : string)=>void;
@@ -80,6 +80,8 @@ const LoginInput:React.FC<LoginInputProps> = ({mode, handleLoginModeChange}) => 
             localStorage.setItem("accessToken", response.accessToken);
             localStorage.setItem("refreshToken", response.refreshToken);
 
+            // 아이디 저장
+            localStorage.setItem("userId", loginId);
     
             // 역할에 따라 이동
             if (mode === 1) {

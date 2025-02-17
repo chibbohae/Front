@@ -1,7 +1,11 @@
 import React from 'react';
 
+type CalenderProps = {
+    counselData: { date:string, time: string; name: string; simpleQ: string[] }[]
+}
+
 //이번주 달력 보여주기
-const Calender = () => {
+const Calender:React.FC<CalenderProps> = ({counselData}) => {
     const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     const week = new Date();
     
@@ -29,9 +33,13 @@ const Calender = () => {
                         {weekDates.map(({ day, date }) => (
                             <td className={`w-[15%] text-end text-custom-blue pr-2 border border-custom-blue/80 ${day==='Sun'||day==='Sat' ? 'bg-custom-blue/20':''}`} key={day}>
                                 {date}
-                                {date===13 ? (<div className='text-center text-custom-blue'>
-                                    <div>7pm 이름</div>
-                                </div>):(<></>)}
+                                {counselData.map((counsel) => 
+                                    new Date(counsel.date).getDate() === date ? (
+                                        <div className='text-center text-custom-blue' key={counsel.time}>
+                                            <div>{counsel.time} {counsel.name}</div>
+                                        </div>
+                                    ) : null
+                                )}
                             </td>
                         ))}
                     </tr>

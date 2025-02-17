@@ -3,6 +3,8 @@ import Header from './component/Header';
 import Footer from './component/Footer';
 import Home from './component/Home';
 import Login from './component/Login/LoginScreen';
+import Chat from './component/CallChat/Chat';
+import Call from './component/CallChat/Call';
 
 import './App.css';
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
@@ -20,7 +22,8 @@ const MainWrapper: React.FC = () => {
   const location = useLocation();
 
   // 로그인 화면일 경우 헤더와 푸터를 제외합니다.
-  const isAuthRoute = location.pathname === '/login';
+  const isAuthRoute = location.pathname === '/login'
+  const isChat = location.pathname === '/main/client/chat' || location.pathname === '/main/client/call'  || location.pathname === '/main/partner/chat' || location.pathname === '/main/partner/call';
 
   return (
     <div className="flex flex-col h-full">
@@ -28,10 +31,10 @@ const MainWrapper: React.FC = () => {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/main/*" element={<Main />} /> {/* /main 경로로 Main 컴포넌트에 전달 */}
+        <Route path="/main/*" element={<Main />} /> {/* /main 경로로 Main 컴포넌트에 전달 */}     
         {/**여기에 라우터 화면 추가 */}
       </Routes>
-      {!isAuthRoute && <Footer />}
+      {!isAuthRoute && !isChat && <Footer />}
     </div>
   );
 }

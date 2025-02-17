@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import Rarrow from '../../images/right-arrow.png';
 import kakao from '../../images/KakaoLogin.png';
-import INPUT from './INPUT';
+import INPUT from '../INPUT';
 import { registerClient, registerPartner } from '../../api/auth'; // API 로직을 가져옵니다.
 
 export enum Gender {

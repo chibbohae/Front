@@ -24,16 +24,13 @@ const Header = () => {
     return ;
   }
   
-  const handleLogoClick = () =>{
-    switch (location.pathname) {
-      case '/main/partner':
-        navigate('/main/partner');
-        return;
-      case '/main/client':
-        navigate('/main/client');
-        return;
-      default :
-        navigate('/main');
+  const handleLogoClick = () => {
+    if (location.pathname.startsWith('/main/partner')) {
+      navigate('/main/partner'); // /main/partner로 이동
+    } else if (location.pathname.startsWith('/main/client')) {
+      navigate('/main/client'); // /main/client로 이동
+    } else {
+      navigate('/main'); // 그 외의 경우 /main으로 이동
     }
   }
   
