@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@react-native-community/voice": "^1.1.9",
     "@tailwindcss/cli": "^4.0.5",
     "@testing-library/jest-dom": "^5.14.1",
     "@testing-library/react": "^16.2.0",
@@ -14,6 +15,8 @@
     "axios": "^1.7.9",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-native-audio-recorder-player": "^3.6.12",
+    "react-native-webrtc": "^124.0.5",
     "react-router-dom": "^7.1.5",
     "react-scripts": "^5.0.1",
     "typescript": "^4.4.2",
