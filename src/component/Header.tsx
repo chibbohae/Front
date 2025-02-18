@@ -56,7 +56,7 @@ const Header = () => {
 
   return (
     <div>
-      <header className="fixed top-0 left-0 right-0 flex items-center justify-between h-16 pl-10 pr-10 bg-white border-b">
+      <header className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between h-16 pl-10 pr-10 bg-white border-b">
         <img src={logo} onClick={handleLogoClick} className="w-32 h-16" alt="logo" />
         {renderHeaderContent()} {/* 경로에 따라 헤더 내용 렌더링 */}
         {token ? (

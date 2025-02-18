@@ -8,6 +8,8 @@ import ClientMypage from './Client/ClientMypage';
 import Review from './Client/Review';
 import Chat from './CallChat/Chat'; // 채팅 컴포넌트
 import Call from './CallChat/Call';   // 전화 컴포넌트
+import AIreview from './Client/AISummary';
+import AISUmmary from './Client/AISummary';
 
 const Main: React.FC = () => {
     const location = useLocation();
@@ -38,6 +40,8 @@ const Main: React.FC = () => {
                 return <Chat onComplete={() => navigate('/main/partner')} goBack={()=>navigate('/main/partner/mypage')}/>;
             case '/main/partner/call':
                 return <Call onComplete={() => navigate('/main/partner/mypage')} />;
+            case '/main/client/aisummary':
+                return <AISUmmary />;
             default:
                 return <Home />;
         }

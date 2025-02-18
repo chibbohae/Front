@@ -9,6 +9,7 @@ const Partner: React.FC = () => {
     const [simpleQ, setQ] = useState<string[]>([]); // simpleQ를 string[]으로 선언
     const [modal, setModal] = useState<boolean>(false);
     
+    // 상담 목록 api 필요
     const counselData = [
         { date: '2025-02-17', time:"7pm" ,name: '홍길동', simpleQ: ['으아sdfkk', '둥', '셋'] }
     ];
