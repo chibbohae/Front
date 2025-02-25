@@ -13,7 +13,6 @@ export interface LoginResponse {
     refreshToken: string;
 }
 
-
 // 멘토(파트너) 로그인 API
 export const loginPartner = async (data: LoginRequest): Promise<LoginResponse> => {
     const response = await api.post<LoginResponse>("/v1/auth/partner/login", data);

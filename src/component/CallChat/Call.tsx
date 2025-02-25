@@ -1,9 +1,13 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { io, Socket } from "socket.io-client";
+import axios from "axios";
 
 type CallProps = {
     onComplete: () => void;
 };
+
+const apiUrl = "http://localhost:8080"; // API 서버 주소
+const socketUrl = "http://localhost:8000"; // WebSocket 서버 주소
 
 const Call: React.FC<CallProps> = ({ onComplete }) => {
     const [status, setStatus] = useState("대기 중");
@@ -43,36 +47,26 @@ const Call: React.FC<CallProps> = ({ onComplete }) => {
         }
     
         try {
-            // 오디오 컨텍스트 생성
             const audioContext = new AudioContext();
-            
-            // 로컬과 원격 오디오를 믹싱하기 위한 설정
             const destination = audioContext.createMediaStreamDestination();
-            
-            // 로컬 오디오 연결
+
             if (localStream.current) {
                 const localSource = audioContext.createMediaStreamSource(localStream.current);
                 localSource.connect(destination);
             }
-            
-            // 원격 오디오 연결
+
             const remoteSource = audioContext.createMediaStreamSource(stream);
             remoteSource.connect(destination);
 
-            // 최종 믹싱된 스트림 사용
             const mixedStream = destination.stream;
 
-            // MediaRecorder 옵션 설정
             let options: MediaRecorderOptions = {};
-            
-            // 브라우저 지원 확인
             if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) {
                 options.mimeType = 'audio/webm;codecs=opus';
             } else if (MediaRecorder.isTypeSupported('audio/webm')) {
                 options.mimeType = 'audio/webm';
             }
 
-            // 오디오 품질 설정
             if (options.mimeType?.includes('webm')) {
                 options = {
                     ...options,
@@ -95,8 +89,7 @@ const Call: React.FC<CallProps> = ({ onComplete }) => {
                 const audioBlob = new Blob(audioChunksRef.current, {
                     type: options.mimeType || 'audio/webm'
                 });
-                
-                // 오디오 데이터 유효성 검사
+
                 if (audioBlob.size < 1000) {
                     console.error("오디오 데이터가 너무 작습니다");
                     return;
@@ -156,7 +149,7 @@ const Call: React.FC<CallProps> = ({ onComplete }) => {
                     channelCount: 1
                 } 
             });
-            
+
             localStream.current = stream;
             stream.getTracks().forEach(track => {
                 peerConnection.current?.addTrack(track, stream);
@@ -177,6 +170,12 @@ const Call: React.FC<CallProps> = ({ onComplete }) => {
         await peerConnection.current?.setLocalDescription(offer);
 
         ws.current?.emit("offer", { offer, from: userId, to: partnerId });
+        
+        // API 호출: 통화 요청 전송
+        await axios.post(`${apiUrl}/call/request`, {
+            caller_id: userId,
+            receiver_id: partnerId,
+        });
     };
 
     const acceptCall = async () => {
@@ -189,6 +188,14 @@ const Call: React.FC<CallProps> = ({ onComplete }) => {
         await peerConnection.current?.setLocalDescription(answer);
 
         ws.current?.emit("answer", { answer, from: userId, to: incomingCall.from });
+
+        // API 호출: 통화 수락 전송
+        await axios.post(`${apiUrl}/call/answer`, {
+            caller_id: incomingCall.from,
+            receiver_id: userId,
+            accepted: true,
+        });
+
         setStatus("통화 중");
         setCallMessage("");
         setIncomingCall(null);
@@ -197,11 +204,18 @@ const Call: React.FC<CallProps> = ({ onComplete }) => {
     const declineCall = () => {
         if (incomingCall) {
             ws.current?.emit("decline", { from: userId, to: incomingCall.from });
+            
+            // API 호출: 통화 거절 전송
+            axios.post(`${apiUrl}/call/answer`, {
+                caller_id: incomingCall.from,
+                receiver_id: userId,
+                accepted: false,
+            });
         }
         setIncomingCall(null);
     };
 
-    const endCall = () => {
+    const endCall = async () => {
         if (mediaRecorderRef.current && isRecording) {
             mediaRecorderRef.current.stop();
             setIsRecording(false);
@@ -220,10 +234,17 @@ const Call: React.FC<CallProps> = ({ onComplete }) => {
 
         setStatus("통화 종료");
         setCallMessage("");
+
+        // API 호출: 통화 종료 전송
+        await axios.post(`${apiUrl}/call/end`, {
+            call_id: "여기에 통화 ID를 넣어주세요", // 실제 통화 ID를 넣어야 합니다.
+        });
+
+        onComplete(); // 통화 종료 후 추가 작업
     };
 
     useEffect(() => {
-        ws.current = io("http://localhost:8000", { transports: ["websocket"] });
+        ws.current = io(socketUrl, { transports: ["websocket"] });
         
         ws.current.on("connect", () => console.log("✅ WebSocket 연결 성공!"));
         ws.current.on("offer", (data) => {
@@ -241,36 +262,37 @@ const Call: React.FC<CallProps> = ({ onComplete }) => {
 
     return (
         <div className="flex flex-col items-center justify-center">
-            <h2>{status}</h2>
-            {callMessage && <p className="text-red-500">{callMessage}</p>}
-            {incomingCall ? (
-                <div className="p-4 text-center bg-gray-200 rounded shadow">
-                    <p>📞 {incomingCall.from} 님의 전화</p>
-                    <button onClick={acceptCall} className="p-2 m-2 text-white bg-green-500 rounded">✅ 받기</button>
-                    <button onClick={declineCall} className="p-2 m-2 text-white bg-red-500 rounded">❌ 거절</button>
-                </div>
-            ) : (
-                <>
-                    <button onClick={makeCall} className="p-2 m-2 text-white bg-green-500 rounded">📞 전화 걸기</button>
-                    <button onClick={endCall} className="p-2 m-2 text-white bg-red-500 rounded">❌ 전화 종료</button>
-                </>
-            )}
-            <audio ref={remoteAudioRef} autoPlay />
-            
-            {/* {recordedAudioUrl && (
-                <div className="mt-4">
-                    <p>녹음된 통화 내용:</p>
-                    <audio 
-                        controls 
-                        src={recordedAudioUrl} 
-                        className="mt-2"
-                        onError={(e) => console.error("오디오 재생 오류:", e)}
-                        onLoadedMetadata={(e) => console.log("오디오 메타데이터 로드됨:", e.currentTarget.duration)}
-                    />
-                </div>
-            )} */}
-        </div>
-    );
+        <h2>{status}</h2>
+        {callMessage && <p className="text-red-500">{callMessage}</p>}
+        {incomingCall ? (
+            <div className="p-4 text-center bg-gray-200 rounded shadow">
+                <p>📞 {incomingCall.from} 님의 전화</p>
+                <button onClick={acceptCall} className="p-2 m-2 text-white bg-green-500 rounded">✅ 받기</button>
+                <button onClick={declineCall} className="p-2 m-2 text-white bg-red-500 rounded">❌ 거절</button>
+            </div>
+        ) : (
+            <>
+                <button onClick={makeCall} className="p-2 m-2 text-white bg-green-500 rounded">📞 전화 걸기</button>
+                <button onClick={endCall} className="p-2 m-2 text-white bg-red-500 rounded">❌ 전화 종료</button>
+            </>
+        )}
+        <audio ref={remoteAudioRef} autoPlay />
+
+        {/* 녹음된 통화 내용 재생 */}
+        {recordedAudioUrl && (
+            <div className="mt-4">
+                <p>녹음된 통화 내용:</p>
+                <audio 
+                    controls 
+                    src={recordedAudioUrl} 
+                    className="mt-2"
+                    onError={(e) => console.error("오디오 재생 오류:", e)}
+                    onLoadedMetadata={(e) => console.log("오디오 메타데이터 로드됨:", e.currentTarget.duration)}
+                />
+            </div>
+        )}
+    </div>
+);
 };
 
 export default Call;
