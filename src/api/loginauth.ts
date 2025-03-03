@@ -29,6 +29,46 @@ export const loginClient = async (data: LoginRequest): Promise<LoginResponse> =>
     return response.data;
 };
 
+// 카카오 로그인 응답 타입
+export interface KakaoLoginResponse {
+    accessToken: string;
+    refreshToken: string;
+}
+
+// 카카오 파트너 로그인 API
+export const loginKakaoPartner = async (code: string): Promise<KakaoLoginResponse> => {
+    const response = await api.post<KakaoLoginResponse>('/v1/auth/kakao/partner/callback', { code });
+    localStorage.setItem('token', response.data.accessToken);
+    localStorage.setItem('refreshToken', response.data.refreshToken);
+    return response.data;
+};
+
+// 카카오 클라이언트 로그인 API
+export const loginKakaoClient = async (code: string): Promise<KakaoLoginResponse> => {
+    const response = await api.post<KakaoLoginResponse>('/v1/auth/kakao/client/callback', { code });
+    localStorage.setItem('token', response.data.accessToken);
+    localStorage.setItem('refreshToken', response.data.refreshToken);
+    return response.data;
+};
+
+// 카카오 로그인 초기화
+export const initiateKakaoLogin = (userType: 'partner' | 'client') => {
+    // Replace with your actual Kakao App key
+    const KAKAO_CLIENT_ID = 'YOUR_KAKAO_CLIENT_ID';
+
+    // Replace with your actual redirect URI (must be registered in Kakao Developer console)
+    const REDIRECT_URI = `${window.location.origin}/kakao-callback`;
+
+    // Store the user type for use after redirect
+    localStorage.setItem('kakaoLoginUserType', userType);
+
+    // Construct the Kakao authorization URL
+    const kakaoAuthURL = `https://kauth.kakao.com/oauth/authorize?client_id=${KAKAO_CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=code`;
+
+    // Redirect the user to the Kakao login page
+    window.location.href = kakaoAuthURL;
+};
+
 
 // 회원가입 성병 ENUM
 export enum Gender {
@@ -81,39 +121,5 @@ export interface RegisterClientResponse{
 // 클라이언트 회원가입
 export const registerClient = async (data:RegisterClientRequest): Promise<RegisterClientResponse> => {
     const response = await api.post<RegisterClientResponse>("/v1/auth/client/signup", data);
-    return response.data;
-}
-
-// 파트너 마이페이지 응답 타입
-export interface PartnerData {
-    name: string,
-    company: string,
-    yearsOfExperience: number,
-    age: number,
-    bio: string,
-    position: string,
-    email: string,
-    telephone: string
-}
-// 파트너 마이페이지 조회
-export const CheckPartnerMypage = async (): Promise<PartnerData>=>{
-    const response = await api.get('/v1/partner/profile');
-    return response.data;
-}
-
-// 클라이언트 마이페이지 응답 타입
-export interface ClientData{
-    name: string,
-    university: string,
-    age: number,
-    major: string,
-    interest: string,
-    telephone: string,
-    email: string
-}
-
-// 클라이언트 마이페이지 조회
-export const CheckClientMypage = async () : Promise<ClientData> =>{
-    const response = await api.get('/v1/client/profile');
     return response.data;
 }

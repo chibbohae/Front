@@ -3,7 +3,7 @@ import { io, Socket } from "socket.io-client";
 import axios from "axios";
 
 type CallProps = {
-    onComplete: () => void;
+    onComplete?: () => void;
 };
 
 const apiUrl = "http://localhost:8080"; // API 서버 주소
@@ -25,18 +25,18 @@ const Call: React.FC<CallProps> = ({ onComplete }) => {
     const audioChunksRef = useRef<Blob[]>([]);
 
     const userId = useMemo(() => {
-        const storedId = sessionStorage.getItem("userId");
+        const storedId = localStorage.getItem("userId");
         if (storedId) return storedId;
         const newId = `user_${Math.floor(Math.random() * 1000)}`;
-        sessionStorage.setItem("userId", newId);
+        localStorage.setItem("userId", newId);
         return newId;
     }, []);
 
     const partnerId = useMemo(() => {
-        const storedId = sessionStorage.getItem("partnerId");
+        const storedId = localStorage.getItem("partnerId");
         if (storedId) return storedId;
         const newId = `user_${Math.floor(Math.random() * 1000)}`;
-        sessionStorage.setItem("partnerId", newId);
+        localStorage.setItem("partnerId", newId);
         return newId;
     }, []);
 
@@ -240,7 +240,7 @@ const Call: React.FC<CallProps> = ({ onComplete }) => {
             call_id: "여기에 통화 ID를 넣어주세요", // 실제 통화 ID를 넣어야 합니다.
         });
 
-        onComplete(); // 통화 종료 후 추가 작업
+        // onComplete(); // 통화 종료 후 추가 작업
     };
 
     useEffect(() => {

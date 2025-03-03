@@ -2,7 +2,7 @@ import React, {useState} from 'react'
 import { useNavigate } from 'react-router-dom';
 import Rarrow from '../../images/right-arrow.png';
 import kakao from '../../images/KakaoLogin.png';
-import { loginPartner, loginClient, LoginRequest } from "../../api/auth";
+import { loginPartner, loginClient, LoginRequest, initiateKakaoLogin} from "../../api/loginauth";
 import INPUT from '../INPUT';
 
 type LoginComponentProps = {
@@ -12,7 +12,13 @@ const LoginComp:React.FC<LoginComponentProps> = ({handleModeChange}) => {
     const [loginmode, setMode] = useState<number>(0);
     const handleLoginModeChange = (num : number) => {
         setMode(num);
-    }
+    };
+    const handleKakaoLogin = () => {
+        // Default to partner login if no mode selected
+        const userType = loginmode === 2 ? 'client' : 'partner';
+        initiateKakaoLogin(userType);
+    };
+
 
     const renderLogin = () => {
         switch (loginmode) {
@@ -32,7 +38,13 @@ const LoginComp:React.FC<LoginComponentProps> = ({handleModeChange}) => {
                         <LoginCard mode="client" handleLoginModeChange={handleLoginModeChange}/>
                     </div>
                     <div className='flex justify-center h-20'>
-                        <img src={kakao} alt="kakao" className='w-64 h-16 cursor-pointer rounded-3xl'/>
+                        {/* 카카오 로그인 */}
+                        <img 
+                            src={kakao} 
+                            alt="kakao" 
+                            className='w-64 h-16 cursor-pointer rounded-3xl'
+                            onClick={handleKakaoLogin}
+                        />
                     </div>
                     <div onClick={() => handleModeChange('register')} className='text-center cursor-pointer text-custom-blue'>
                         아직 계정이 없으신가요?

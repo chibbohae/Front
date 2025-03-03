@@ -1,7 +1,6 @@
 import React from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom'; // useLocation 추가
 import logo from '../images/sentosa-nobg.png';
-import { CheckPartnerMypage, CheckClientMypage } from '../api/auth'
 
 const Header = () => {
   const navigate = useNavigate(); // useNavigate 훅 사용
@@ -20,6 +19,10 @@ const Header = () => {
 
   const handleLogout = () =>{
     localStorage.removeItem('token');
+    localStorage.removeItem('refreshToken');
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('userId');
+    localStorage.removeItem('kakaoLoginUserType');
     navigate('/main')
     return ;
   }
@@ -47,7 +50,10 @@ const Header = () => {
           <button className='text-lg font-bold'>리뷰관리</button>
         </div>;
     } else if (location.pathname.startsWith('/main/client')) {
-        return <h1 className="text-lg font-bold">클라이언트 페이지</h1>;
+        return <div className='flex flex-row w-[50%] justify-evenly'>
+          <button className='text-lg font-bold'>추천</button>
+          <button className='text-lg font-bold'>뭐넣지</button>
+        </div>;
     } else {
         return <h1 className="text-lg font-bold w-[50%] text-center">홈페이지</h1>;
     }
