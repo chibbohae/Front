@@ -101,13 +101,13 @@ const Header = () => {
       return (
         <div className={`${isMobile ? (isMenuOpen ? 'flex justify-between mt-4 gap-3 px-4 pb-4' : 'hidden') : 'flex flex-row items-center gap-4'}`}>
           <button
-            className={`${isMenuOpen ? "flex-1":""} min-w-[100px] px-4 py-2 text-blue-600 transition-colors duration-200 bg-white border border-blue-600 rounded-lg hover:bg-blue-50`}
+            className="min-w-[100px] px-4 py-2 text-white transition-colors duration-200 rounded-lg shadow-md bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800"
             onClick={handleMyPage}
           >
             마이페이지
           </button>
           <button
-            className={`${isMenuOpen ? "flex-1":""} min-w-[100px] px-4 py-2 text-blue-600 transition-colors duration-200 bg-white border border-blue-600 rounded-lg hover:bg-blue-50`}
+            className="min-w-[100px] px-4 py-2 text-white transition-colors duration-200 rounded-lg shadow-md bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800"
             onClick={handleLogout}
           >
             로그아웃
@@ -125,6 +125,7 @@ const Header = () => {
       );
     }
   };
+  
 
 
 

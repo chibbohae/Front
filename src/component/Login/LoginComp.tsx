@@ -143,7 +143,7 @@ type LoginCardProps = {
 }
 const LoginCard: React.FC<LoginCardProps> = ({ mode ,handleLoginModeChange}) => {
     return (
-        <div className='w-64 h-64 min-w-[250px] min-h-[250px] aspect-w-1 aspect-h-1 rounded-2xl bg-custom-blue flex flex-col items-center justify-evenly shadow-lg shadow-custom-blue'>
+        <div className='w-64 h-64 min-w-[250px] min-h-[250px] aspect-w-1 aspect-h-1 rounded-2xl bg-gradient-to-r from-blue-500 to-indigo-500 flex flex-col items-center justify-around shadow-lg shadow-gray'>
             {mode === 'partner' ? 
                 (
                     <div>
