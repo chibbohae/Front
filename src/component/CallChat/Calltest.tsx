@@ -39,8 +39,9 @@ const Calltest: React.FC<CalltestProps> = ({ onComplete }) => {
         return newId;
     }, []);
 
-    const apiUrl = "http://15.164.104.129:8000"; // http -> https
-    const socketUrl = `ws://15.164.104.129:8000`; // ws -> wss
+    // URL을 http에서 https로, ws에서 wss로 변경
+    const apiUrl = "http://15.164.104.129:8000"; // 서버가 https를 지원하지 않는 경우 http 유지
+    const socketUrl = `ws://15.164.104.129:8000`; // 서버가 wss를 지원하지 않는 경우 ws 유지
 
 
     const startRecording = async (stream: MediaStream) => {
@@ -230,11 +231,8 @@ const Calltest: React.FC<CalltestProps> = ({ onComplete }) => {
                 headers: {
                     'Content-Type': 'application/json',
                     'Access-Control-Allow-Origin': '*'
-                },
-                // HTTPS 요청 설정 추가
-                httpsAgent: new (require('https').Agent)({
-                    rejectUnauthorized: false // 자체 서명된 인증서 허용 (개발 환경에서만 사용)
-                })
+                }
+                // httpsAgent 설정 제거 (브라우저에서는 사용 불가)
             });
             
             // call_id 저장
@@ -283,11 +281,8 @@ const Calltest: React.FC<CalltestProps> = ({ onComplete }) => {
                 headers: {
                     'Content-Type': 'application/json',
                     'Access-Control-Allow-Origin': '*'
-                },
-                // HTTPS 요청 설정 추가
-                httpsAgent: new (require('https').Agent)({
-                    rejectUnauthorized: false
-                })
+                }
+                // httpsAgent 설정 제거
             });
             
             // call_id 저장
@@ -325,11 +320,8 @@ const Calltest: React.FC<CalltestProps> = ({ onComplete }) => {
                 headers: {
                     'Content-Type': 'application/json',
                     'Access-Control-Allow-Origin': '*'
-                },
-                // HTTPS 요청 설정 추가
-                httpsAgent: new (require('https').Agent)({
-                    rejectUnauthorized: false
-                })
+                }
+                // httpsAgent 설정 제거
             });
             
             // 2. WebSocket을 통해 발신자에게 call_reject 이벤트 전송
@@ -401,11 +393,8 @@ const Calltest: React.FC<CalltestProps> = ({ onComplete }) => {
                     headers: {
                         'Content-Type': 'application/json',
                         'Access-Control-Allow-Origin': '*'
-                    },
-                    // HTTPS 요청 설정 추가
-                    httpsAgent: new (require('https').Agent)({
-                        rejectUnauthorized: false
-                    })
+                    }
+                    // httpsAgent 설정 제거
                 });
                 
                 // 2. WebSocket을 통해 상대방에게 call_end 이벤트 전송
@@ -440,8 +429,12 @@ const Calltest: React.FC<CalltestProps> = ({ onComplete }) => {
             extraHeaders: {
                 "Access-Control-Allow-Origin": "*"
             },
-            secure: true, // SSL/TLS 연결 사용
-            rejectUnauthorized: false // 자체 서명된 인증서 허용 (개발 환경에서만 사용)
+            reconnection: true,           // 재연결 활성화
+            reconnectionAttempts: 5,      // 최대 5번 재시도
+            reconnectionDelay: 1000,      // 1초 후 재시도
+            timeout: 10000                // 타임아웃 10초로 설정
+            // secure 옵션 제거 (ws 프로토콜 사용 시 필요 없음)
+            // rejectUnauthorized 옵션 제거 (브라우저에서는 사용 불가)
         });
         
         ws.current.on("connect", () => {
