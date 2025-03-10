@@ -4,7 +4,9 @@ import { io, Socket } from "socket.io-client";
 const VideoCall = () => {
   // sessionStorage에서 caller_id와 receiver_id를 가져옴
   const caller_id = sessionStorage.getItem('caller_id');
+  sessionStorage.setItem('receiver_id', 'sehan' )
   const receiver_id = sessionStorage.getItem('receiver_id');
+  sessionStorage.setItem('userId', 'se' )
   const userId = sessionStorage.getItem('userId');
 
   const socketRef = useRef<Socket>();
