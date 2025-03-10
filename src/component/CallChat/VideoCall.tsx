@@ -5,11 +5,15 @@ const VideoCall = () => {
   // sessionStorage에서 caller_id와 receiver_id를 가져옴
   const caller_id = sessionStorage.getItem('caller_id');
   const receiver_id = sessionStorage.getItem('receiver_id');
+  const userId = sessionStorage.getItem('userId');
 
   const socketRef = useRef<Socket>();
   const myVideoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
   const pcRef = useRef<RTCPeerConnection>();
+
+  const apiUrl = "/api";
+  const socketUrl = `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/api/signaling/ws/${userId}`;
 
   const getMedia = async () => {
     try {
@@ -83,7 +87,7 @@ const VideoCall = () => {
   };
 
   useEffect(() => {
-    socketRef.current = io("http://localhost:8080");
+    socketRef.current = io(socketUrl);
 
     pcRef.current = new RTCPeerConnection({
       iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
