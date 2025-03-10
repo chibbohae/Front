@@ -40,8 +40,8 @@ const Calltest: React.FC<CalltestProps> = ({ onComplete }) => {
         return newId;
     }, []);
 
-    const apiUrl = "https://15.164.104.129:8000"; // http -> https
-    const socketUrl = `wss://15.164.104.129:8000`; // ws -> wss
+    const apiUrl = "http://15.164.104.129:8000"; // http -> https
+    const socketUrl = `ws://15.164.104.129:8000`; // ws -> wss
 
 
     const startRecording = async (stream: MediaStream) => {
