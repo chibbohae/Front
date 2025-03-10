@@ -227,27 +227,27 @@ const Calltest: React.FC<CalltestProps> = ({ onComplete }) => {
                 receiver_id: partnerId 
             });
             
-            // call_id 저장
-            const callId = response.data.call_id;
-            setCurrentCallId(callId);
+            // // call_id 저장
+            // const callId = response.data.call_id;
+            // setCurrentCallId(callId);
             
-            // 2. WebSocket을 통해 수신자에게 incoming_call 이벤트 전송
-            ws.current?.emit("incoming_call", { 
-                caller_id: userId, 
-                receiver_id: partnerId,
-                call_id: callId
-            });
+            // // 2. WebSocket을 통해 수신자에게 incoming_call 이벤트 전송
+            // ws.current?.emit("incoming_call", { 
+            //     caller_id: userId, 
+            //     receiver_id: partnerId,
+            //     call_id: callId
+            // });
     
-            // 3. Offer 생성 및 전송
-            const offer = await peerConnection.current?.createOffer();
-            await peerConnection.current?.setLocalDescription(offer);
-            console.log("offer: ", offer);
-            ws.current?.emit("offer", { 
-                caller_id: userId, 
-                receiver_id: partnerId, 
-                call_id: callId,
-                sdp: offer,
-            });
+            // // 3. Offer 생성 및 전송
+            // const offer = await peerConnection.current?.createOffer();
+            // await peerConnection.current?.setLocalDescription(offer);
+            // console.log("offer: ", offer);
+            // ws.current?.emit("offer", { 
+            //     caller_id: userId, 
+            //     receiver_id: partnerId, 
+            //     call_id: callId,
+            //     sdp: offer,
+            // });
         } catch (error) {
             console.error("전화 연결 실패:", error);
             setStatus("전화 연결 실패");
