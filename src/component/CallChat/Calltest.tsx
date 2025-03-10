@@ -221,41 +221,41 @@ const Calltest: React.FC<CalltestProps> = ({ onComplete }) => {
         await createPeerConnection();
         
         try {
-            // 1. 서버에 통화 요청 - API 엔드포인트 수정
-            const response = await axios.post(`${apiUrl}/call/request`, { 
-                caller_id: userId, 
-                receiver_id: partnerId 
-            },
-            {
-                withCredentials: true, // CORS 설정 추가
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Access-Control-Allow-Origin': '*'
-                }
-                // httpsAgent 설정 제거 (브라우저에서는 사용 불가)
-            });
+            // // 1. 서버에 통화 요청 - API 엔드포인트 수정
+            // const response = await axios.post(`${apiUrl}/call/request`, { 
+            //     caller_id: userId, 
+            //     receiver_id: partnerId 
+            // },
+            // {
+            //     withCredentials: true, // CORS 설정 추가
+            //     headers: {
+            //         'Content-Type': 'application/json',
+            //         'Access-Control-Allow-Origin': '*'
+            //     }
+            //     // httpsAgent 설정 제거 (브라우저에서는 사용 불가)
+            // });
             
-            // call_id 저장
-            const callId = response.data.call_id;
-            setCurrentCallId(callId);
+            // // call_id 저장
+            // const callId = response.data.call_id;
+            // setCurrentCallId(callId);
             
-            // 2. WebSocket을 통해 수신자에게 incoming_call 이벤트 전송
-            ws.current?.emit("incoming_call", { 
-                caller_id: userId, 
-                receiver_id: partnerId,
-                call_id: callId
-            });
+            // // 2. WebSocket을 통해 수신자에게 incoming_call 이벤트 전송
+            // ws.current?.emit("incoming_call", { 
+            //     caller_id: userId, 
+            //     receiver_id: partnerId,
+            //     call_id: callId
+            // });
     
-            // 3. Offer 생성 및 전송
-            const offer = await peerConnection.current?.createOffer();
-            await peerConnection.current?.setLocalDescription(offer);
-            console.log("offer: ", offer);
-            ws.current?.emit("offer", { 
-                caller_id: userId, 
-                receiver_id: partnerId, 
-                call_id: callId,
-                sdp: offer,
-            });
+            // // 3. Offer 생성 및 전송
+            // const offer = await peerConnection.current?.createOffer();
+            // await peerConnection.current?.setLocalDescription(offer);
+            // console.log("offer: ", offer);
+            // ws.current?.emit("offer", { 
+            //     caller_id: userId, 
+            //     receiver_id: partnerId, 
+            //     call_id: callId,
+            //     sdp: offer,
+            // });
         } catch (error) {
             console.error("전화 연결 실패:", error);
             setStatus("전화 연결 실패");
