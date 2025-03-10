@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { io, Socket } from "socket.io-client";
 import axios from "axios";
-import https from 'https';
 
 type CalltestProps = {
     onComplete?: () => void;
