@@ -39,13 +39,11 @@ const Calltest: React.FC<CalltestProps> = ({ onComplete }) => {
         return newId;
     }, []);
 
-    // CORS 프록시 서비스를 사용하여 HTTP API에 접근
-    const apiUrl = "https://cors-anywhere.herokuapp.com/http://15.164.104.129:8000"; // CORS 프록시 사용
-    // 또는 다른 CORS 프록시 서비스 사용
-    // const apiUrl = "https://corsproxy.io/?http://15.164.104.129:8000";
+    // CORS 프록시 서비스 변경 - cors-anywhere는 현재 제한이 있어 다른 프록시 사용
+    const apiUrl = "https://corsproxy.io/?http://15.164.104.129:8000"; // 다른 CORS 프록시 사용
     
-    // WebSocket은 프록시 없이 직접 연결 시도 (브라우저 보안 설정에 따라 차단될 수 있음)
-    const socketUrl = `ws://15.164.104.129:8000/signaling/ws/${userId}`;
+    // WebSocket URL 수정 - Socket.io 경로 형식에 맞게 변경
+    const socketUrl = `ws://15.164.104.129:8000`;
 
     const startRecording = async (stream: MediaStream) => {
         if (isRecording) {
@@ -228,6 +226,11 @@ const Calltest: React.FC<CalltestProps> = ({ onComplete }) => {
             const response = await axios.post(`${apiUrl}/call/request`, { 
                 caller_id: userId, 
                 receiver_id: partnerId 
+            }, {
+                headers: {
+                    'Content-Type': 'application/json'
+                    // Access-Control-Allow-Origin 헤더 제거 (CORS 프록시가 처리)
+                }
             });
             
             // call_id 저장
@@ -272,12 +275,10 @@ const Calltest: React.FC<CalltestProps> = ({ onComplete }) => {
                 receiver_id: userId, 
                 accepted: true 
             }, {
-                withCredentials: true,
                 headers: {
-                    'Content-Type': 'application/json',
-                    'Access-Control-Allow-Origin': '*'
+                    'Content-Type': 'application/json'
+                    // Access-Control-Allow-Origin 헤더 제거 (CORS 프록시가 처리)
                 }
-                // httpsAgent 설정 제거
             });
             
             // call_id 저장
@@ -311,12 +312,10 @@ const Calltest: React.FC<CalltestProps> = ({ onComplete }) => {
                 receiver_id: userId, 
                 accepted: false 
             }, {
-                withCredentials: true,
                 headers: {
-                    'Content-Type': 'application/json',
-                    'Access-Control-Allow-Origin': '*'
+                    'Content-Type': 'application/json'
+                    // Access-Control-Allow-Origin 헤더 제거 (CORS 프록시가 처리)
                 }
-                // httpsAgent 설정 제거
             });
             
             // 2. WebSocket을 통해 발신자에게 call_reject 이벤트 전송
@@ -384,12 +383,10 @@ const Calltest: React.FC<CalltestProps> = ({ onComplete }) => {
                 await axios.post(`${apiUrl}/call/end`, { 
                     call_id: currentCallId 
                 }, {
-                    withCredentials: true,
                     headers: {
-                        'Content-Type': 'application/json',
-                        'Access-Control-Allow-Origin': '*'
+                        'Content-Type': 'application/json'
+                        // Access-Control-Allow-Origin 헤더 제거 (CORS 프록시가 처리)
                     }
-                    // httpsAgent 설정 제거
                 });
                 
                 // 2. WebSocket을 통해 상대방에게 call_end 이벤트 전송
@@ -421,17 +418,32 @@ const Calltest: React.FC<CalltestProps> = ({ onComplete }) => {
         // Socket.io 설정 수정
         const socketOptions = {
             transports: ["websocket"],
-            path: '/api/socket.io', // 프록시 경로 설정
             reconnection: true,
             reconnectionAttempts: 5,
             reconnectionDelay: 1000,
-            timeout: 10000
+            timeout: 20000, // 타임아웃 증가
+            autoConnect: true,
+            forceNew: true
         };
         
         console.log("WebSocket 연결 URL:", socketUrl);
         console.log("WebSocket 옵션:", socketOptions);
         
+        // Socket.io 연결 생성
         ws.current = io(socketUrl, socketOptions);
+        
+        // 연결 이벤트 핸들러
+        ws.current.on("connect_error", (error) => {
+            console.error("WebSocket 연결 오류:", error);
+        });
+        
+        ws.current.on("connect_timeout", () => {
+            console.error("WebSocket 연결 타임아웃");
+        });
+        
+        ws.current.on("error", (error) => {
+            console.error("WebSocket 오류:", error);
+        });
         
         ws.current.on("connect", () => {
             console.log("✅ WebSocket 연결 성공!");
