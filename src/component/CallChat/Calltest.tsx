@@ -39,10 +39,13 @@ const Calltest: React.FC<CalltestProps> = ({ onComplete }) => {
         return newId;
     }, []);
 
-    // URL을 http에서 https로, ws에서 wss로 변경
-    const apiUrl = "http://15.164.104.129:8000"; // 서버가 https를 지원하지 않는 경우 http 유지
-    const socketUrl = `ws://15.164.104.129:8000/signaling/ws/${userId}`; // 서버가 wss를 지원하지 않는 경우 ws 유지
-
+    // CORS 프록시 서비스를 사용하여 HTTP API에 접근
+    const apiUrl = "https://cors-anywhere.herokuapp.com/http://15.164.104.129:8000"; // CORS 프록시 사용
+    // 또는 다른 CORS 프록시 서비스 사용
+    // const apiUrl = "https://corsproxy.io/?http://15.164.104.129:8000";
+    
+    // WebSocket은 프록시 없이 직접 연결 시도 (브라우저 보안 설정에 따라 차단될 수 있음)
+    const socketUrl = `ws://15.164.104.129:8000/signaling/ws/${userId}`;
 
     const startRecording = async (stream: MediaStream) => {
         if (isRecording) {
@@ -415,14 +418,20 @@ const Calltest: React.FC<CalltestProps> = ({ onComplete }) => {
     useEffect(() => {
         console.log("컴포넌트 마운트: WebSocket 연결 시도");
     
-        ws.current = io(socketUrl, { 
+        // Socket.io 설정 수정
+        const socketOptions = {
             transports: ["websocket"],
-            withCredentials: true, // 서버가 credentials 허용해야 함
+            path: '/api/socket.io', // 프록시 경로 설정
             reconnection: true,
             reconnectionAttempts: 5,
             reconnectionDelay: 1000,
             timeout: 10000
-        });
+        };
+        
+        console.log("WebSocket 연결 URL:", socketUrl);
+        console.log("WebSocket 옵션:", socketOptions);
+        
+        ws.current = io(socketUrl, socketOptions);
         
         ws.current.on("connect", () => {
             console.log("✅ WebSocket 연결 성공!");
