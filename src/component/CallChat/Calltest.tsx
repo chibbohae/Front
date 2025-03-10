@@ -40,8 +40,8 @@ const Calltest: React.FC<CalltestProps> = ({ onComplete }) => {
     }, []);
 
     // URL을 http에서 https로, ws에서 wss로 변경
-    const apiUrl = "http://15.164.104.129:8000"; // 서버가 https를 지원하지 않는 경우 http 유지
-    const socketUrl = `ws://15.164.104.129:8000/signaling/ws/${userId}`; // 서버가 wss를 지원하지 않는 경우 ws 유지
+    const apiUrl = "https://15.164.104.129:8000"; // 서버가 https를 지원하지 않는 경우 http 유지
+    const socketUrl = `wss://15.164.104.129:8000/signaling/ws/${userId}`; // 서버가 wss를 지원하지 않는 경우 ws 유지
 
 
     const startRecording = async (stream: MediaStream) => {
@@ -227,27 +227,27 @@ const Calltest: React.FC<CalltestProps> = ({ onComplete }) => {
                 receiver_id: partnerId 
             });
             
-            // // call_id 저장
-            // const callId = response.data.call_id;
-            // setCurrentCallId(callId);
+            // call_id 저장
+            const callId = response.data.call_id;
+            setCurrentCallId(callId);
             
-            // // 2. WebSocket을 통해 수신자에게 incoming_call 이벤트 전송
-            // ws.current?.emit("incoming_call", { 
-            //     caller_id: userId, 
-            //     receiver_id: partnerId,
-            //     call_id: callId
-            // });
+            // 2. WebSocket을 통해 수신자에게 incoming_call 이벤트 전송
+            ws.current?.emit("incoming_call", { 
+                caller_id: userId, 
+                receiver_id: partnerId,
+                call_id: callId
+            });
     
-            // // 3. Offer 생성 및 전송
-            // const offer = await peerConnection.current?.createOffer();
-            // await peerConnection.current?.setLocalDescription(offer);
-            // console.log("offer: ", offer);
-            // ws.current?.emit("offer", { 
-            //     caller_id: userId, 
-            //     receiver_id: partnerId, 
-            //     call_id: callId,
-            //     sdp: offer,
-            // });
+            // 3. Offer 생성 및 전송
+            const offer = await peerConnection.current?.createOffer();
+            await peerConnection.current?.setLocalDescription(offer);
+            console.log("offer: ", offer);
+            ws.current?.emit("offer", { 
+                caller_id: userId, 
+                receiver_id: partnerId, 
+                call_id: callId,
+                sdp: offer,
+            });
         } catch (error) {
             console.error("전화 연결 실패:", error);
             setStatus("전화 연결 실패");
@@ -417,16 +417,11 @@ const Calltest: React.FC<CalltestProps> = ({ onComplete }) => {
     
         ws.current = io(socketUrl, { 
             transports: ["websocket"],
-            withCredentials: true, // CORS 설정 추가
-            extraHeaders: {
-                "Access-Control-Allow-Origin": "*"
-            },
-            reconnection: true,           // 재연결 활성화
-            reconnectionAttempts: 5,      // 최대 5번 재시도
-            reconnectionDelay: 1000,      // 1초 후 재시도
-            timeout: 10000                // 타임아웃 10초로 설정
-            // secure 옵션 제거 (ws 프로토콜 사용 시 필요 없음)
-            // rejectUnauthorized 옵션 제거 (브라우저에서는 사용 불가)
+            withCredentials: true, // 서버가 credentials 허용해야 함
+            reconnection: true,
+            reconnectionAttempts: 5,
+            reconnectionDelay: 1000,
+            timeout: 10000
         });
         
         ws.current.on("connect", () => {
