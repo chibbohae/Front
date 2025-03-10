@@ -6,9 +6,6 @@ type CalltestProps = {
     onComplete?: () => void;
 };
 
-const apiUrl = "http://localhost:8080"; // API 서버 주소
-const socketUrl = "http://localhost:8080"; // WebSocket 서버 주소
-
 const Calltest: React.FC<CalltestProps> = ({ onComplete }) => {
     const [status, setStatus] = useState("대기 중");
     const [incomingCall, setIncomingCall] = useState<{ caller_id: string } | null>(null);
@@ -29,11 +26,9 @@ const Calltest: React.FC<CalltestProps> = ({ onComplete }) => {
     const localAudioRef = useRef<HTMLAudioElement | null>(null);
 
     const userId = useMemo(() => {
-        const storedId = sessionStorage.getItem("userId");
-        if (storedId) return storedId;
-        const newId = `user_${Math.floor(Math.random() * 1000)}`;
-        sessionStorage.setItem("userId", newId);
-        return newId;
+        const storedId = localStorage.getItem("userId");
+        console.log("userId: ", storedId);
+        return storedId;
     }, []);
 
     const partnerId = useMemo(() => {
@@ -43,6 +38,10 @@ const Calltest: React.FC<CalltestProps> = ({ onComplete }) => {
         sessionStorage.setItem("partnerId", newId);
         return newId;
     }, []);
+
+    const apiUrl = "https://15.164.104.129:8000"; // http -> https
+    const socketUrl = `wss://15.164.104.129:8000`; // ws -> wss
+
 
     const startRecording = async (stream: MediaStream) => {
         if (isRecording) {
@@ -160,7 +159,6 @@ const Calltest: React.FC<CalltestProps> = ({ onComplete }) => {
         peerConnection.current.onicecandidate = (event) => {
             if (event.candidate && currentCallId) {
                 ws.current?.emit("ice_candidate", { 
-                    // call_id 주석
                     call_id: currentCallId, 
                     candidate: event.candidate,
                     caller_id: userId,
@@ -222,10 +220,17 @@ const Calltest: React.FC<CalltestProps> = ({ onComplete }) => {
         await createPeerConnection();
         
         try {
-            // 1. 서버에 통화 요청
+            // 1. 서버에 통화 요청 - API 엔드포인트 수정
             const response = await axios.post(`${apiUrl}/call/request`, { 
                 caller_id: userId, 
                 receiver_id: partnerId 
+            },
+            {
+                withCredentials: true, // CORS 설정 추가
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*'
+                }
             });
             
             // call_id 저장
@@ -264,7 +269,7 @@ const Calltest: React.FC<CalltestProps> = ({ onComplete }) => {
         await createPeerConnection();
         
         try {
-            // 1. 서버에 통화 수락 요청
+            // 1. 서버에 통화 수락 요청 - API 엔드포인트 수정
             const response = await axios.post(`${apiUrl}/call/answer`, { 
                 caller_id: incomingCall.caller_id, 
                 receiver_id: userId, 
@@ -278,7 +283,6 @@ const Calltest: React.FC<CalltestProps> = ({ onComplete }) => {
                 // 2. WebSocket을 통해 발신자에게 call_answer 이벤트 전송
                 ws.current?.emit("call_answer", { 
                     caller_id: incomingCall.caller_id, 
-                    // call_id 주석
                     call_id: response.data.call_id 
                 });
             }
@@ -297,7 +301,7 @@ const Calltest: React.FC<CalltestProps> = ({ onComplete }) => {
         if (!incomingCall) return;
         
         try {
-            // 1. 서버에 통화 거절 요청
+            // 1. 서버에 통화 거절 요청 - API 엔드포인트 수정
             await axios.post(`${apiUrl}/call/answer`, { 
                 caller_id: incomingCall.caller_id, 
                 receiver_id: userId, 
@@ -365,8 +369,10 @@ const Calltest: React.FC<CalltestProps> = ({ onComplete }) => {
         
         if (currentCallId) {
             try {
-                // 1. 서버에 통화 종료 요청
-                await axios.post(`${apiUrl}/call/end`, { call_id: currentCallId });
+                // 1. 서버에 통화 종료 요청 - API 엔드포인트 수정, 요청 형식 수정
+                await axios.post(`${apiUrl}/call/end`, { 
+                    call_id: currentCallId 
+                });
                 
                 // 2. WebSocket을 통해 상대방에게 call_end 이벤트 전송
                 ws.current?.emit("call_end", { 
@@ -394,7 +400,13 @@ const Calltest: React.FC<CalltestProps> = ({ onComplete }) => {
     useEffect(() => {
         console.log("컴포넌트 마운트: WebSocket 연결 시도");
     
-        ws.current = io(socketUrl, { transports: ["websocket"] });
+        ws.current = io(socketUrl, { 
+            transports: ["websocket"],
+            withCredentials: true, // CORS 설정 추가
+            extraHeaders: {
+                "Access-Control-Allow-Origin": "*"
+            }
+        });
         
         ws.current.on("connect", () => {
             console.log("✅ WebSocket 연결 성공!");

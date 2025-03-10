@@ -177,7 +177,7 @@ const RegInput: React.FC<RegInputProps> = ({ mode, handleRegModeChange, handlePr
 
     return (
         <div className='w-[100%] h-[100%] flex justify-center items-center'>
-            <div className='flex flex-col items-center justify-center w-2/3 shadow-lg shadow-custom-blue h-2/3 bg-custom-blue rounded-3xl'>
+            <div className='flex flex-col items-center justify-center w-2/3 shadow-lg shadow-custom-blue h-2/3 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-3xl'>
                 <div className='flex mt-4 text-xl font-bold text-white'>{mode === 1 ? '멘토 / Partner' : '멘티 / Client'}</div>
                 <div className='flex flex-col items-center h-64 mt-8 justify-evenly'>
                     <INPUT classname='w-64 h-10' placeholder='아이디' value={loginId} onChange={(e) => setLoginId(e.target.value)}  />
@@ -352,7 +352,7 @@ const RegDetail: React.FC<RegDetailProps> = ({mode, handleRegModeChange, handleM
     
     return (
         <div className='w-[100%] h-[100%] flex justify-center items-center'>
-            <div className='flex flex-col items-center justify-center w-2/3 shadow-lg shadow-custom-blue h-2/3 bg-custom-blue rounded-3xl'>
+            <div className='flex flex-col items-center justify-center w-2/3 shadow-lg shadow-custom-blue h-2/3 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-3xl'>
                 {mode === 2 ? (
                     <>
                         <div className='flex flex-col items-center justify-around'>
@@ -436,7 +436,7 @@ type RegisterCardProps = {
 }
 const RegisterCard: React.FC<RegisterCardProps> = ({ mode,handleModeChange }) => {
     return (
-        <div className='w-64 h-64 min-w-[250px] min-h-[250px] aspect-w-1 aspect-h-1 rounded-2xl bg-custom-blue flex flex-col items-center justify-evenly shadow-lg shadow-custom-blue'>
+        <div className='w-64 h-64 min-w-[250px] min-h-[250px] aspect-w-1 aspect-h-1 rounded-2xl bg-gradient-to-r from-blue-500 to-indigo-500 flex flex-col items-center justify-evenly shadow-lg shadow-custom-blue'>
             {mode === 'partner' ? (
                 <>
                     <div className='flex flex-col items-center justify-around'>

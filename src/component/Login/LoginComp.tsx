@@ -19,7 +19,6 @@ const LoginComp:React.FC<LoginComponentProps> = ({handleModeChange}) => {
         initiateKakaoLogin(userType);
     };
 
-
     const renderLogin = () => {
         switch (loginmode) {
             case 1:
@@ -109,7 +108,7 @@ const LoginInput:React.FC<LoginInputProps> = ({mode, handleLoginModeChange}) => 
 
     return (
         <div className='w-[100%] h-[100%] flex justify-center items-center'>
-            <div className='flex flex-col items-center justify-center w-2/3 shadow-lg shadow-custom-blue h-2/3 bg-custom-blue rounded-3xl'>
+            <div className='flex flex-col items-center justify-center w-2/3 shadow-lg bg-gradient-to-r from-blue-500 to-indigo-500 h-2/3 rounded-3xl'>
                 {mode === 1  ? 
                     (
                         <div className='flex flex-col items-center justify-around'>

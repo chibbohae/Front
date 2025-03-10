@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react'
 import { PartnerData, CheckPartnerMypage, UpdatePartnerInfo, UpdatePartnerData } from '../../api/mypageauth'
 import INPUT from '../INPUT'
+import { useNavigate } from 'react-router-dom'
 
 const PartnerMypage = () => {
+  const navigate = useNavigate();
   const options = [
     "백엔드 개발", "PM", "프론트엔드 개발", "프로덕트 디자인", "AI / ML",
     "데이터 분석", "PO", "인사", "브랜드 마케팅", "영업 관리",
@@ -85,9 +87,20 @@ const PartnerMypage = () => {
     }
   };
 
-  // 상담 목록 샘플 데이터
+  // 전화 버튼 클릭 처리
+  const handleCallClick = (counselId: string) => {
+    navigate('/main/partner/call', { state: { counselId } });
+  };
+
+  // 채팅 버튼 클릭 처리
+  const handleChatClick = (counselId: string) => {
+    navigate('/main/partner/chat', { state: { counselId } });
+  };
+
+  // 상담 목록 샘플 데이터 (ID 추가)
   const acceptedCounsels = [
     { 
+      id: 'c001',
       date: '2025-03-04', 
       time: '7:00 PM', 
       name: '홍길동', 
@@ -95,6 +108,7 @@ const PartnerMypage = () => {
       topic: '자기소개서 첨삭 및 면접 준비'
     },
     { 
+      id: 'c002',
       date: '2025-03-05', 
       time: '3:00 PM', 
       name: '김철수', 
@@ -102,6 +116,7 @@ const PartnerMypage = () => {
       topic: '포트폴리오 검토 및 개발자 취업 전략'
     },
     { 
+      id: 'c003',
       date: '2025-03-07', 
       time: '10:00 AM', 
       name: '이영희', 
@@ -254,6 +269,7 @@ const PartnerMypage = () => {
                       <th className="px-6 py-3 text-left">이름</th>
                       <th className="px-6 py-3 text-left">상담 주제</th>
                       <th className="px-6 py-3 text-left">상태</th>
+                      <th className="px-6 py-3 text-left">채팅 / 전화</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
@@ -271,6 +287,26 @@ const PartnerMypage = () => {
                           }`}>
                             {counsel.status}
                           </span>
+                        </td>
+                        <td className="px-6 py-4">
+                          {counsel.status === '완료' ? null :
+                          <div className="flex space-x-2">
+                            <button 
+                              onClick={() => handleChatClick(counsel.id)}
+                              className="px-3 py-1 text-xs font-medium text-white transition-colors duration-200 bg-indigo-600 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                              disabled={counsel.status === '완료'}
+                            >
+                              채팅
+                            </button>
+                            <button 
+                              onClick={() => handleCallClick(counsel.id)}
+                              className="px-3 py-1 text-xs font-medium text-white transition-colors duration-200 bg-green-600 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500"
+                              disabled={counsel.status === '완료'}
+                            >
+                              전화
+                            </button>
+                          </div>}
+                          
                         </td>
                       </tr>
                     ))}
