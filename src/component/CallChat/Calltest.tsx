@@ -40,8 +40,8 @@ const Calltest: React.FC<CalltestProps> = ({ onComplete }) => {
     }, []);
 
     // URL을 http에서 https로, ws에서 wss로 변경
-    const apiUrl = "https://15.164.104.129:8000"; // 서버가 https를 지원하지 않는 경우 http 유지
-    const socketUrl = `wss://15.164.104.129:8000/signaling/ws/${userId}`; // 서버가 wss를 지원하지 않는 경우 ws 유지
+    const apiUrl = "http://15.164.104.129:8000"; // 서버가 https를 지원하지 않는 경우 http 유지
+    const socketUrl = `ws://15.164.104.129:8000/signaling/ws/${userId}`; // 서버가 wss를 지원하지 않는 경우 ws 유지
 
 
     const startRecording = async (stream: MediaStream) => {
