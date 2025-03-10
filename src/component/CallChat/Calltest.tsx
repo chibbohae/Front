@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { io, Socket } from "socket.io-client";
 import axios from "axios";
+import https from 'https';
 
 type CalltestProps = {
     onComplete?: () => void;
@@ -230,7 +231,11 @@ const Calltest: React.FC<CalltestProps> = ({ onComplete }) => {
                 headers: {
                     'Content-Type': 'application/json',
                     'Access-Control-Allow-Origin': '*'
-                }
+                },
+                // HTTPS 요청 설정 추가
+                httpsAgent: new (require('https').Agent)({
+                    rejectUnauthorized: false // 자체 서명된 인증서 허용 (개발 환경에서만 사용)
+                })
             });
             
             // call_id 저장
@@ -274,6 +279,16 @@ const Calltest: React.FC<CalltestProps> = ({ onComplete }) => {
                 caller_id: incomingCall.caller_id, 
                 receiver_id: userId, 
                 accepted: true 
+            }, {
+                withCredentials: true,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*'
+                },
+                // HTTPS 요청 설정 추가
+                httpsAgent: new (require('https').Agent)({
+                    rejectUnauthorized: false
+                })
             });
             
             // call_id 저장
@@ -306,6 +321,16 @@ const Calltest: React.FC<CalltestProps> = ({ onComplete }) => {
                 caller_id: incomingCall.caller_id, 
                 receiver_id: userId, 
                 accepted: false 
+            }, {
+                withCredentials: true,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*'
+                },
+                // HTTPS 요청 설정 추가
+                httpsAgent: new (require('https').Agent)({
+                    rejectUnauthorized: false
+                })
             });
             
             // 2. WebSocket을 통해 발신자에게 call_reject 이벤트 전송
@@ -372,6 +397,16 @@ const Calltest: React.FC<CalltestProps> = ({ onComplete }) => {
                 // 1. 서버에 통화 종료 요청 - API 엔드포인트 수정, 요청 형식 수정
                 await axios.post(`${apiUrl}/call/end`, { 
                     call_id: currentCallId 
+                }, {
+                    withCredentials: true,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Access-Control-Allow-Origin': '*'
+                    },
+                    // HTTPS 요청 설정 추가
+                    httpsAgent: new (require('https').Agent)({
+                        rejectUnauthorized: false
+                    })
                 });
                 
                 // 2. WebSocket을 통해 상대방에게 call_end 이벤트 전송
@@ -405,7 +440,9 @@ const Calltest: React.FC<CalltestProps> = ({ onComplete }) => {
             withCredentials: true, // CORS 설정 추가
             extraHeaders: {
                 "Access-Control-Allow-Origin": "*"
-            }
+            },
+            secure: true, // SSL/TLS 연결 사용
+            rejectUnauthorized: false // 자체 서명된 인증서 허용 (개발 환경에서만 사용)
         });
         
         ws.current.on("connect", () => {
