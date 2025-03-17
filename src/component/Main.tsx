@@ -26,8 +26,8 @@ const Main: React.FC = () => {
             <Route path="partner/mypage" element={<PartnerMypage />} />
             <Route path="client/mypage" element={<ClientMypage />} />
             <Route path="client/review" element={<Review />} />
-            <Route path="client/chat" element={<Chat onComplete={() => navigate('/client/review')} goBack={() => navigate('/main/client/mypage')} />} />
-            <Route path="partner/chat" element={<Chat onComplete={() => navigate('/main/partner')} goBack={() => navigate('/main/partner/mypage')} />} />
+            {/* <Route path="client/chat" element={<Chat onComplete={() => navigate('/client/review')} goBack={() => navigate('/main/client/mypage')} />} />
+            <Route path="partner/chat" element={<Chat onComplete={() => navigate('/main/partner')} goBack={() => navigate('/main/partner/mypage')} />} /> */}
             {/* <Route path="client/call" element={<VideoCall  />} />
             <Route path="partner/call" element={<VideoCall />} /> */}
             <Route path="client/call" element={<Calltest />} />
