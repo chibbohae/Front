@@ -40,10 +40,10 @@ const Calltest: React.FC<CalltestProps> = ({ onComplete }) => {
     }, []);
 
     // CORS 프록시 서비스 변경 - cors-anywhere는 현재 제한이 있어 다른 프록시 사용
-    const apiUrl = "https://corsproxy.io/?http://15.164.104.129:8000"; // 다른 CORS 프록시 사용
+    const apiUrl = "https://chibbohae.link"; // 다른 CORS 프록시 사용
     
     // WebSocket URL 수정 - Socket.io 경로 형식에 맞게 변경
-    const socketUrl = `ws://15.164.104.129:8000`;
+    const socketUrl = `wss://15.164.104.129:8000`;
 
     const startRecording = async (stream: MediaStream) => {
         if (isRecording) {
