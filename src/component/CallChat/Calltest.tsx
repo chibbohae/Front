@@ -43,7 +43,7 @@ const Calltest: React.FC<CalltestProps> = ({ onComplete }) => {
     const apiUrl = "https://chibbohae.link"; // 다른 CORS 프록시 사용
     
     // WebSocket URL 수정 - Socket.io 경로 형식에 맞게 변경
-    const socketUrl = `wss://15.164.104.129:8000`;
+    const socketUrl = `ws://15.164.104.129:8000`;
 
     const startRecording = async (stream: MediaStream) => {
         if (isRecording) {
