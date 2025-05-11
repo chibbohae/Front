@@ -51,10 +51,10 @@ const Calltest: React.FC<CalltestProps> = ({ onComplete }) => {
     }, []);
     
     // CORS 프록시 서비스 변경 - cors-anywhere는 현재 제한이 있어 다른 프록시 사용
-    const apiUrl = "https://chibbohae.link"; // 다른 CORS 프록시 사용
+    const apiUrl = "http://localhost:5001"; // 다른 CORS 프록시 사용
     
     // WebSocket URL 수정 - Socket.io 경로 형식에 맞게 변경
-    const socketUrl =  "localhost:5001"//`ws://chibbohae.link/signaling/ws/test_user`;
+    const socketUrl =  "localhost:5001"; // `ws://chibbohae.link/signaling/ws/test_user`;
 
     const startRecording = async (stream: MediaStream) => {
         if (isRecording) {
@@ -165,6 +165,17 @@ const Calltest: React.FC<CalltestProps> = ({ onComplete }) => {
 
     const createPeerConnection = async () => {
         console.log("peer connection 생성 시작");
+        
+        // 이미 존재하는 연결 정리
+        if (peerConnection.current) {
+            console.log("기존 PeerConnection 정리");
+            peerConnection.current.close();
+            peerConnection.current = null;
+        }
+        
+        peerConnection.current = new RTCPeerConnection({
+            iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
+        });
         peerConnection.current = new RTCPeerConnection({
             iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
         });
@@ -247,17 +258,19 @@ const Calltest: React.FC<CalltestProps> = ({ onComplete }) => {
             // call_id 저장
             const callId = response.data.call_id;
             setCurrentCallId(callId);
+
+            const offer = await peerConnection.current?.createOffer();
+            await peerConnection.current?.setLocalDescription(offer);
             
             // 2. WebSocket을 통해 수신자에게 incoming_call 이벤트 전송
             ws.current?.emit("incoming_call", { 
                 caller_id: userId, 
                 receiver_id: partnerId,
-                call_id: callId
+                call_id: callId,
+                sdp: offer,
             });
     
             // 3. Offer 생성 및 전송
-            const offer = await peerConnection.current?.createOffer();
-            await peerConnection.current?.setLocalDescription(offer);
             console.log("offer: ", offer);
             ws.current?.emit("offer", { 
                 caller_id: userId, 
@@ -272,77 +285,26 @@ const Calltest: React.FC<CalltestProps> = ({ onComplete }) => {
         }
     };
     
-    const acceptCall = async () => {
-        if (!incomingCall) return;
-        
-        setStatus("전화 받는 중...");
-        setCallerIsMe(false);
-        await createPeerConnection();
-        
+    // 📌 Offer 수신 핸들러 (수정)
+    const handleOffer = async (data: { from: string; sdp: RTCSessionDescriptionInit; call_id: string }) => {
         try {
-            // 1. 서버에 통화 수락 요청 - API 엔드포인트 수정
-            const response = await axios.post(`${apiUrl}/call/answer`, { 
-                caller_id: incomingCall.caller_id, 
-                receiver_id: userId, 
-                accepted: true 
-            }, {
-                headers: {
-                    'Content-Type': 'application/json'
-                    // Access-Control-Allow-Origin 헤더 제거 (CORS 프록시가 처리)
-                }
-            });
+            console.log("📡 Offer 수신:", data);
             
-            // call_id 저장
-            if (response.data.call_id) {
-                setCurrentCallId(response.data.call_id);
-                
-                // 2. WebSocket을 통해 발신자에게 call_answer 이벤트 전송
-                ws.current?.emit("call_answer", { 
-                    caller_id: incomingCall.caller_id, 
-                    call_id: response.data.call_id 
-                });
+            // SDP 정보를 incomingCall에 업데이트
+            if (incomingCall && incomingCall.caller_id === data.from) {
+                console.log("✅ 기존 통화 요청에 SDP 정보 추가");
+                setIncomingCall(prev => prev ? { ...prev, sdp: data.sdp } : null);
+            } else {
+                // 새 통화 요청인 경우
+                console.log("✅ 새 통화 요청과 함께 SDP 정보 설정");
+                setIncomingCall({ caller_id: data.from, sdp: data.sdp });
+                setCurrentCallId(data.call_id);
+                setCallMessage(`📞 ${data.from} 님이 전화를 걸었습니다!`);
             }
-            
-            setStatus("통화 중");
-            setCallMessage("");
-            setIncomingCall(null);
         } catch (error) {
-            console.error("통화 수락 실패:", error);
-            setStatus("통화 수락 실패");
-            cleanupCall();
+            console.error("🚨 Offer 처리 실패:", error);
         }
     };
-
-    const rejectCall = async () => {
-        if (!incomingCall) return;
-        
-        try {
-            // 1. 서버에 통화 거절 요청 - API 엔드포인트 수정
-            await axios.post(`${apiUrl}/call/answer`, { 
-                caller_id: incomingCall.caller_id, 
-                receiver_id: userId, 
-                accepted: false 
-            }, {
-                headers: {
-                    'Content-Type': 'application/json'
-                    // Access-Control-Allow-Origin 헤더 제거 (CORS 프록시가 처리)
-                }
-            });
-            
-            // 2. WebSocket을 통해 발신자에게 call_reject 이벤트 전송
-            ws.current?.emit("call_reject", { 
-                caller_id: incomingCall.caller_id 
-            });
-            
-            setStatus("통화 거절됨");
-            setIncomingCall(null);
-            setCallMessage("");
-        } catch (error) {
-            console.error("통화 거절 실패:", error);
-            setStatus("통화 거절 실패");
-        }
-    };
-
     // const handleOffer = async (data: { from: string; sdp: RTCSessionDescriptionInit; call_id: string }) => {
     //     try {
     //         if (!peerConnection.current) return;
@@ -350,117 +312,104 @@ const Calltest: React.FC<CalltestProps> = ({ onComplete }) => {
     //         console.log("📡 Offer 수신:", data);
     //         console.log("📡 현재 PeerConnection 상태:", peerConnection.current.signalingState);
     
+    //         // ✅ Offer가 이미 처리 중이면 무시 (중복 Offer 방지)
     //         if (peerConnection.current.signalingState !== "stable") {
-    //             console.warn("🚨 Offer를 처리할 수 없는 상태입니다! (현재 상태: " + peerConnection.current.signalingState + ")");
-    //             return;
+    //             console.warn(`🚨 Offer를 처리할 수 없는 상태입니다! (현재 상태: ${peerConnection.current.signalingState})`);
+                
+    //             // 🔥 have-local-offer 상태이면 rollback 수행
+    //             if (peerConnection.current.signalingState === "have-local-offer") {
+    //                 console.warn("⚠️ 기존 Offer가 존재하므로 rollback 후 처리...");
+    //                 await peerConnection.current.setLocalDescription({ type: "rollback" });
+    //             } else {
+    //                 return;
+    //             }
     //         }
     
+    //         // ✅ Remote SDP 설정 (수신자에서만 실행)
     //         await peerConnection.current.setRemoteDescription(new RTCSessionDescription(data.sdp));
     //         console.log("✅ Remote SDP 설정 완료");
     
-    //         // Answer 생성 및 전송
-    //         const answer = await peerConnection.current.createAnswer();
-    //         console.log("📡 Answer 생성 완료:", answer);
-    
-    //         await peerConnection.current.setLocalDescription(answer);
-    //         console.log("✅ Local SDP 설정 완료");
-    
-    //         ws.current?.emit("answer", { 
-    //             caller_id: data.from, 
-    //             call_id: data.call_id, 
-    //             sdp: answer 
-    //         });
-    
-    //         console.log("📡 Answer 전송 완료:", answer);
+    //         // Offer 수신 시 UI에 전화 알림 표시 + SDP 저장
+    //         setIncomingCall({ caller_id: data.from, sdp: data.sdp });
+    //         setCurrentCallId(data.call_id);
+    //         setCallMessage(`📞 ${data.from} 님이 전화를 걸었습니다!`);
     //     } catch (error) {
     //         console.error("🚨 Offer 처리 실패:", error);
     //     }
-    // };
-    
-    // 📌 Offer 수신 핸들러 (수정)
-    const handleOffer = async (data: { from: string; sdp: RTCSessionDescriptionInit; call_id: string }) => {
-        try {
-            if (!peerConnection.current) return;
-    
-            console.log("📡 Offer 수신:", data);
-            console.log("📡 현재 PeerConnection 상태:", peerConnection.current.signalingState);
-    
-            // ✅ Offer가 이미 처리 중이면 무시 (중복 Offer 방지)
-            if (peerConnection.current.signalingState !== "stable") {
-                console.warn(`🚨 Offer를 처리할 수 없는 상태입니다! (현재 상태: ${peerConnection.current.signalingState})`);
-                
-                // 🔥 have-local-offer 상태이면 rollback 수행
-                if (peerConnection.current.signalingState === "have-local-offer") {
-                    console.warn("⚠️ 기존 Offer가 존재하므로 rollback 후 처리...");
-                    await peerConnection.current.setLocalDescription({ type: "rollback" });
-                } else {
-                    return;
-                }
-            }
-    
-            // ✅ Remote SDP 설정 (수신자에서만 실행)
-            await peerConnection.current.setRemoteDescription(new RTCSessionDescription(data.sdp));
-            console.log("✅ Remote SDP 설정 완료");
-    
-            // Offer 수신 시 UI에 전화 알림 표시 + SDP 저장
-            setIncomingCall({ caller_id: data.from, sdp: data.sdp });
-            setCurrentCallId(data.call_id);
-            setCallMessage(`📞 ${data.from} 님이 전화를 걸었습니다!`);
-        } catch (error) {
-            console.error("🚨 Offer 처리 실패:", error);
-        }
-    };    
+    // };    
     
     // 📌 Offer 수락 버튼 핸들러
+    // 현재 문제가 있는 부분 (약 370-394줄):
     const acceptOffer = async () => {
-        if (!peerConnection.current || !incomingCall || !incomingCall.sdp) return;
-    
-        console.log("✅ Offer 수락: Answer 생성 중...");
+        if (!incomingCall) return;
+        
+        console.log("✅ Offer 수락 시작: PeerConnection 설정 중...");
         
         try {
-            // 🔥 Offer를 받은 후 Remote Description 설정
-            await peerConnection.current.setRemoteDescription(new RTCSessionDescription(incomingCall.sdp));
-    
-            const answer = await peerConnection.current.createAnswer();
-            await peerConnection.current.setLocalDescription(answer);
-    
-            console.log("📡 Answer 전송 완료:", answer);
+            // 1. 먼저 PeerConnection 생성 - 중요!
+            await createPeerConnection();
             
-            ws.current?.emit("answer", { 
-                caller_id: incomingCall.caller_id, 
-                call_id: currentCallId, 
-                sdp: answer 
+            if (!peerConnection.current || !incomingCall.sdp) {
+                console.error("🚨 PeerConnection 생성 실패 또는 SDP 없음");
+                return;
+            }
+            
+            console.log("PeerConnection 생성됨:", peerConnection.current.signalingState);
+            
+            // 2. Remote SDP 설정
+            await peerConnection.current.setRemoteDescription(new RTCSessionDescription(incomingCall.sdp));
+            console.log("Remote SDP 설정 완료");
+            
+            // 3. Answer 생성
+            const answer = await peerConnection.current.createAnswer();
+            console.log("Answer 생성됨:", answer);
+            
+            // 4. Local SDP 설정
+            await peerConnection.current.setLocalDescription(answer);
+            console.log("Local SDP 설정 완료");
+            
+            // 5. 먼저 call_answer 이벤트 발송하여 통화 수락 알림
+            ws.current?.emit("call_answer", { 
+                caller_id: incomingCall.caller_id,
+                call_id: currentCallId
             });
-    
+            
+            // 6. 그 다음 answer SDP 전송
+            ws.current?.emit("answer", { 
+                caller_id: userId,  // 자신(수신자)의 ID
+                receiver_id: incomingCall.caller_id,  // 발신자 ID
+                call_id: currentCallId, 
+                sdp: answer  // Answer SDP
+            });
+            
+            console.log("📞 Answer 전송 완료", incomingCall.caller_id, "에게");
+
             setStatus("통화 중");
             setIncomingCall(null);
         } catch (error) {
             console.error("🚨 Answer 처리 실패:", error);
+            setStatus("통화 연결 실패");
+            cleanupCall();
         }
-    };    
+    };
 
     // 📌 Offer 거절 버튼 핸들러
     const rejectOffer = async () => {
-        if (!incomingCall) return;
+        if (!incomingCall || !currentCallId) return;
 
         console.log("🚫 Offer 거절");
         
-        ws.current?.emit("offer_reject", { 
-            caller_id: incomingCall.caller_id, 
-            call_id: currentCallId 
+        // 올바른 형식으로 거절 이벤트 전송
+        ws.current?.emit("call_reject", { 
+            caller_id: incomingCall.caller_id,  // 발신자 ID
+            call_id: currentCallId
         });
 
         setStatus("통화 거절됨");
         setIncomingCall(null);
         setCallMessage("");
+        cleanupCall();  // 리소스 정리 추가
     };
-
-    // 📌 WebSocket에서 Offer 이벤트 수신 시 처리 (수정)
-    ws.current?.on("offer", (data) => {
-        console.log("📡 Offer 수신:", data);
-        handleOffer(data);
-    });
-
     
     const handleAnswer = async (data: { from: string; sdp: RTCSessionDescriptionInit }) => {
         try {
@@ -542,193 +491,79 @@ const Calltest: React.FC<CalltestProps> = ({ onComplete }) => {
         }
     };
 
-    // 이게 잘 안되는거
-    // useEffect(() => {
-    //     console.log("📡 컴포넌트 마운트: WebSocket 연결 시도");
-    
-    //     // ✅ 기존 WebSocket 연결이 있으면 해제 후 다시 연결
-    //     if (ws.current) {
-    //         ws.current.disconnect();
-    //     }
-    
-    //     ws.current = io(socketUrl, {
-    //         transports: ["websocket"],
-    //         reconnection: true,
-    //         reconnectionAttempts: 5,
-    //         reconnectionDelay: 1000,
-    //         timeout: 20000,
-    //         autoConnect: true,
-    //         forceNew: true
-    //     });
-    
-    //     console.log("✅ WebSocket 연결 URL:", socketUrl);
-    
-    //     ws.current.on("connect", () => {
-    //         console.log("✅ WebSocket 연결 성공!");
-    //         ws.current?.emit("join", { userId, partnerId });
-    //     });
-    
-    //     // 🔹 수신자가 통화 요청을 받을 때 실행
-    //     ws.current.on("incoming_call", (data) => {
-    //         console.log("📞 수신된 통화 요청:", data);
-    //         setIncomingCall({
-    //             caller_id: data.caller_id,
-    //             sdp: data.sdp, // SDP 포함
-    //         });
-    //         setCallMessage(`📞 ${data.caller_id} 님이 전화를 걸었습니다!`);
-    //         setCurrentCallId(data.call_id);
-    //     });
-    
-    //     // 🔹 Offer 수신 (수신자가 SDP를 받음)
-    //     ws.current.on("offer", (data) => {
-    //         console.log("📡 Offer 수신:", data);
-    //         handleOffer(data);
-    //     });
-    
-    //     // 🔹 Answer 수신 (발신자가 SDP를 받음)
-    //     ws.current.on("answer", (data) => {
-    //         console.log("📡 Answer 수신:", data);
-    //         handleAnswer(data);
-    //     });
-    
-    //     // 🔹 통화 수락 수신 (발신자가 알림 받음)
-    //     ws.current.on("call_answer", (data) => {
-    //         console.log("📞 통화 수락됨:", data);
-    //         setStatus("통화 연결됨");
-    //         if (localStream.current) {
-    //             startRecording(localStream.current);
-    //         }
-    //     });
-    
-    //     // 🔹 통화 거절 수신 (발신자가 알림 받음)
-    //     ws.current.on("call_reject", () => {
-    //         console.log("🚫 통화 거절됨");
-    //         setStatus("통화 거절됨");
-    //         cleanupCall();
-    //     });
-    
-    //     // 🔹 ICE 후보 수신 (WebRTC 연결 안정화)
-    //     ws.current.on("ice_candidate", async (data) => {
-    //         console.log("🌍 ICE candidate 수신:", data);
-    //         if (peerConnection.current) {
-    //             try {
-    //                 await peerConnection.current.addIceCandidate(new RTCIceCandidate(data.candidate));
-    //             } catch (e) {
-    //                 console.error("🚨 ICE candidate 추가 실패:", e);
-    //             }
-    //         }
-    //     });
-    
-    //     // 🔹 통화 종료 이벤트 (상대방이 통화 종료 시)
-    //     ws.current.on("call_end", () => {
-    //         console.log("📞 통화 종료됨");
-    //         setStatus("상대방이 통화를 종료했습니다");
-    //         stopRecording();
-    //         cleanupCall();
-    //         setCallEnded(true);
-    //     });
-    
-    //     // 🔹 WebSocket 정리 (언마운트 시)
-    //     return () => {
-    //         console.log("🛑 컴포넌트 언마운트: WebSocket 연결 해제");
-    //         if (ws.current?.connected) {
-    //             ws.current.emit("leave", { userId });
-    //             ws.current.disconnect();
-    //         }
-    //         cleanupCall();
-    //     };
-    // }, [userId]);    
-
-    // 이게 자신한테 전화 거는거
     useEffect(() => {
-        console.log("컴포넌트 마운트: WebSocket 연결 시도");
-    
-        // Socket.io 설정 수정
-        const socketOptions = {
+        console.log("WebSocket 연결 시도");
+
+        const socket = io(socketUrl, {
             transports: ["websocket"],
             reconnection: true,
             reconnectionAttempts: 5,
-            reconnectionDelay: 1000,
-            timeout: 20000, // 타임아웃 증가
-            autoConnect: true,
-            forceNew: true
-        };
-    
-        console.log("WebSocket 연결 URL:", socketUrl);
-        console.log("WebSocket 옵션:", socketOptions);
-    
-        // Socket.io 연결 생성
-        ws.current = io(socketUrl, socketOptions);
-    
-        ws.current.emit("join", userId, partnerId); // 방 참가
-    
-        // WebSocket 이벤트 핸들러 등록
-        ws.current.on("connect", () => {
-            console.log("✅ WebSocket 연결 성공!");
-            ws.current?.emit("join", { userId });
+            timeout: 20000,
+            forceNew: true,
         });
-    
-        ws.current.on("incoming_call", (data) => {
-            console.log("수신된 통화 요청:", data);
+
+        ws.current = socket;
+        // ws.current = io(socketUrl, socketOptions);
+
+        ws.current.on("connect", () => {
+            console.log("✅ WebSocket 연결 성공!", userId, partnerId);
+            ws.current?.emit("join", userId, partnerId);  // <-- 이게 꼭 필요
+        });
+
+        socket.on("incoming_call", (data) => {
+            if (data.caller_id === userId) return; // 본인이면 무시
+            
+            console.log("📞 통화 요청 수신:", data);
+            
+            // SDP가 없으면 서버로부터 offer 이벤트를 통해 받을 예정
             setIncomingCall({ caller_id: data.caller_id });
-            setCallMessage(`📞 ${data.caller_id} 님의 전화가 왔습니다!`);
+            setCallMessage(`📞 ${data.caller_id} 님이 전화 중입니다`);
             setCurrentCallId(data.call_id);
         });
-    
-        ws.current.on("offer", (data) => {
-            console.log("📡 Offer 수신:", data);
-            handleOffer(data);
+
+        socket.on("offer", (data) => {
+            if (data.from === userId) return;
+            handleOffer(data)
         });
-    
-        // ✅ Answer 이벤트 등록 (추가)
-        ws.current.on("answer", (data) => {
-            console.log("📡 Answer 수신:", data);
-            handleAnswer(data);
-        });
-    
-        ws.current.on("call_answer", (data) => {
-            console.log("통화 수락 수신:", data);
-            setStatus("통화 연결됨");
-            if (localStream.current) {
-                startRecording(localStream.current);
-            }
-        });
-    
-        ws.current.on("call_reject", () => {
-            console.log("통화 거절 수신");
-            setStatus("통화 거절됨");
-            cleanupCall();
-        });
-    
-        ws.current.on("ice_candidate", async (data) => {
-            console.log("ICE candidate 수신");
+        
+        socket.on("answer", handleAnswer);
+
+        socket.on("ice_candidate", async (data) => {
             if (peerConnection.current) {
                 try {
-                    await peerConnection.current.addIceCandidate(data.candidate);
+                    await peerConnection.current.addIceCandidate(new RTCIceCandidate(data.candidate));
                 } catch (e) {
-                    console.error("ICE candidate 추가 실패:", e);
+                    console.error("ICE 추가 실패", e);
                 }
             }
         });
-    
-        ws.current.on("call_end", () => {
-            console.log("통화 종료 이벤트 수신");
-            setStatus("상대방이 통화를 종료했습니다");
-            stopRecording(); // 상대방이 종료해도 녹음 파일 생성
-            cleanupCall();
-            setCallEnded(true);
+        socket.on("call_answer", (data) => {
+            console.log("📞 상대방이 전화를 수락했습니다:", data);
+            setStatus("통화 중");
+            setCallMessage("");
         });
-    
+        socket.on("call_reject", (data) => {
+            console.log("📵 상대방이 통화를 거절했습니다:", data);
+            setStatus("상대방이 통화를 거절했습니다");
+            setCallMessage("");
+            cleanupCall();
+        });
+
+
+        socket.on("call_end", () => {
+            setStatus("상대방이 통화를 종료했습니다");
+            stopRecording();
+            cleanupCall();
+        });
+
         return () => {
-            console.log("컴포넌트 언마운트: 연결 정리");
-            if (ws.current?.connected) {
-                ws.current.emit("leave", { userId });
-                ws.current.disconnect();
-            }
+            console.log("🛑 연결 해제");
+            socket.emit("leave", { userId });
+            socket.disconnect();
             cleanupCall();
         };
     }, [userId]);
-    
+
 
     return (
         <div className="flex flex-col items-center justify-center">
