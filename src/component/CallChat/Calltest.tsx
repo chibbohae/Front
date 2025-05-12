@@ -287,21 +287,35 @@ const Calltest: React.FC<CalltestProps> = ({ onComplete }) => {
         try {
             console.log("📡 Offer 수신:", data);
 
-            // SDP 정보를 incomingCall에 업데이트
-            if (incomingCall && incomingCall.caller_id === data.from) {
-                console.log("✅ 기존 통화 요청에 SDP 정보 추가");
-                setIncomingCall(prev => prev ? { ...prev, sdp: data.sdp } : null);
-            } else {
-                // 새 통화 요청인 경우
-                console.log("✅ 새 통화 요청과 함께 SDP 정보 설정");
-                setIncomingCall({ caller_id: data.from, sdp: data.sdp });
-                setCurrentCallId(data.call_id);
-                setCallMessage(`📞 ${data.from} 님이 전화를 걸었습니다!`);
-            }
+            // ✅ 항상 최신 SDP로 덮어쓰기
+            setIncomingCall({ caller_id: data.from, sdp: data.sdp });
+            setCurrentCallId(data.call_id);
+            setCallMessage(`📞 ${data.from} 님이 전화를 걸었습니다!`);
         } catch (error) {
             console.error("🚨 Offer 처리 실패:", error);
         }
     };
+
+
+    // const handleOffer = async (data: { from: string; sdp: RTCSessionDescriptionInit; call_id: string }) => {
+    //     try {
+    //         console.log("📡 Offer 수신:", data);
+
+    //         // SDP 정보를 incomingCall에 업데이트
+    //         if (incomingCall && incomingCall.caller_id === data.from) {
+    //             console.log("✅ 기존 통화 요청에 SDP 정보 추가");
+    //             setIncomingCall(prev => prev ? { ...prev, sdp: data.sdp } : null);
+    //         } else {
+    //             // 새 통화 요청인 경우
+    //             console.log("✅ 새 통화 요청과 함께 SDP 정보 설정");
+    //             setIncomingCall({ caller_id: data.from, sdp: data.sdp });
+    //             setCurrentCallId(data.call_id);
+    //             setCallMessage(`📞 ${data.from} 님이 전화를 걸었습니다!`);
+    //         }
+    //     } catch (error) {
+    //         console.error("🚨 Offer 처리 실패:", error);
+    //     }
+    // };
 
     const acceptOffer = async () => {
         if (!incomingCall) return;
