@@ -7,8 +7,7 @@ type CalltestProps = {
 };
 
 const Calltest: React.FC<CalltestProps> = ({ onComplete }) => {
-    const [status, setStatus] = useState("대기 중");
-    // const [incomingCall, setIncomingCall] = useState<{ caller_id: string } | null>(null);
+    const [status, setStatus] = useState("대기 중"); 
     const [incomingCall, setIncomingCall] = useState<{ caller_id: string; sdp?: RTCSessionDescriptionInit } | null>(null);
     const [callMessage, setCallMessage] = useState("");
     const [currentCallId, setCurrentCallId] = useState<string | null>(null);
@@ -431,8 +430,6 @@ const Calltest: React.FC<CalltestProps> = ({ onComplete }) => {
         }
     };
     
-    
-    
     const cleanupCall = () => {
         // 먼저 녹음 중지
         stopRecording();
@@ -563,7 +560,6 @@ const Calltest: React.FC<CalltestProps> = ({ onComplete }) => {
             cleanupCall();
         };
     }, [userId]);
-
 
     return (
         <div className="flex flex-col items-center justify-center">
