@@ -252,9 +252,9 @@ const Calltest: React.FC<CalltestProps> = ({ onComplete }) => {
                 }
             });
 
-            // // call_id 저장
-            // const callId = response.data.call_id;
-            // setCurrentCallId(callId);
+            // call_id 저장
+            const callId = response.data.call_id;
+            setCurrentCallId(callId);
 
             const offer = await peerConnection.current?.createOffer();
             await peerConnection.current?.setLocalDescription(offer);
