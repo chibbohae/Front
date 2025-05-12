@@ -1,5 +1,5 @@
-import { io } from "socket.io-client";
+// import { io } from "socket.io-client";
 
-const createSocket = () => io(`https://api.chibbohae-fastapi.store`); // 새 인스턴스
+// const createSocket = () => io(`https://api.chibbohae-fastapi.store`); // 새 인스턴스
 
-export default createSocket;
+// export default createSocket;
