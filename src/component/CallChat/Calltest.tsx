@@ -53,7 +53,8 @@ const Calltest: React.FC<CalltestProps> = ({ onComplete }) => {
     const apiUrl = 'https://3930-36-38-154-98.ngrok-free.app' // "http://localhost:5001"; // 다른 CORS 프록시 사용
     
     // WebSocket URL 수정 - Socket.io 경로 형식에 맞게 변경
-    const socketUrl = "https://3930-36-38-154-98.ngrok-free.app" //"localhost:5001"; // `ws://chibbohae.link/signaling/ws/test_user`;
+    const socketUrl = "ws://chibbohae.link/signaling/ws/test_user"
+    // "https://3930-36-38-154-98.ngrok-free.app" //"localhost:5001"; // `ws://chibbohae.link/signaling/ws/test_user`;
 
     const startRecording = async (stream: MediaStream) => {
         if (isRecording) {
