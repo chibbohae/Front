@@ -1,16 +1,16 @@
-// import React, { useEffect, useRef, useState } from 'react';
-// import INPUT from '../INPUT';
-// import Rarrow from '../../images/right-arrow.png'
-// import { SeparatorHorizontal } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import INPUT from '../INPUT';
+import Rarrow from '../../images/right-arrow.png'
+import { SeparatorHorizontal } from 'lucide-react';
 // import createSocket from "../../server"
 // import { io } from "socket.io-client";
 // const socket = createSocket();
 
-// type CallProps={
-//     onComplete: ()=>void
-//     goBack: ()=>void;
-// }
-// const Chat: React.FC<CallProps> = ({onComplete, goBack}) => {
+type CallProps={
+    onComplete: ()=>void
+    goBack: ()=>void;
+}
+const Chat: React.FC<CallProps> = ({onComplete, goBack}) => {
 //     const [user, setUser] = useState<string>("");
 //     const [partner, setPartner] = useState<string>("");
 //     const [chat, setChat] = useState<string>('');
@@ -93,8 +93,9 @@
 //         }
 //     }, [chatlist]);
 
-//     return (
-//         <div className='flex flex-col items-center justify-center h-[600px]'>
+    return (
+        <div className='flex flex-col items-center justify-center h-[600px]'>
+{/* 
 //             <div className='flex flex-col justify-between h-[100%] w-[80%] bg-custom-blue/20 rounded-b-xl p-2'>
 //                 <div className='w-[100%] flex flex-row justify-between'>
 //                     <button className='flex flex-row justify-center w-20 border-2 rounded-lg border-custom-blue'
@@ -135,9 +136,9 @@
 //                         보내기
 //                     </button>
 //                 </div>
-//             </div>
-//         </div>
-//     );
-// }
+//             </div> */}
+        </div>
+    );
+}
 
-// export default Chat;
+export default Chat;
