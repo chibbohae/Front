@@ -252,9 +252,9 @@ const Calltest: React.FC<CalltestProps> = ({ onComplete }) => {
                 }
             });
 
-            // call_id 저장
-            const callId = response.data.call_id;
-            setCurrentCallId(callId);
+            // // call_id 저장
+            // const callId = response.data.call_id;
+            // setCurrentCallId(callId);
 
             const offer = await peerConnection.current?.createOffer();
             await peerConnection.current?.setLocalDescription(offer);
@@ -264,8 +264,8 @@ const Calltest: React.FC<CalltestProps> = ({ onComplete }) => {
                 type: "incoming_call",
                 caller_id: userId,
                 receiver_id: partnerId,
-                call_id: callId,
-                sdp: offer,
+                // call_id: callId,
+                // sdp: offer,
             }));
 
             // 3. Offer 생성 및 전송
@@ -274,8 +274,8 @@ const Calltest: React.FC<CalltestProps> = ({ onComplete }) => {
                 type: "offer",
                 caller_id: userId,
                 receiver_id: partnerId,
-                call_id: callId,
-                sdp: offer,
+                // call_id: callId,
+                // sdp: offer,
             }));
         } catch (error) {
             console.error("전화 연결 실패:", error);
