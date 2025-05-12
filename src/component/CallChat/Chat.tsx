@@ -3,7 +3,7 @@ import INPUT from '../INPUT';
 import Rarrow from '../../images/right-arrow.png'
 // import socket from "../../server"
 import { SeparatorHorizontal } from 'lucide-react';
-import createSocket from "../../server";
+import createSocket from "../../server"
 import { io } from "socket.io-client";
 const socket = createSocket();
 
