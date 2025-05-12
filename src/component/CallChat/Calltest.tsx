@@ -49,8 +49,9 @@ const Calltest: React.FC<CalltestProps> = ({ onComplete }) => {
     }, []);
 
     // CORS 프록시 서비스 변경 - cors-anywhere는 현재 제한이 있어 다른 프록시 사용
-    const apiUrl = 'https://adc9-61-42-109-13.ngrok-free.app' // "http://localhost:5001"; // 다른 CORS 프록시 사용
-
+    // const apiUrl = 'https://adc9-61-42-109-13.ngrok-free.app' // "http://localhost:5001"; // 다른 CORS 프록시 사용
+    const apiUrl = `https://api.chibbohae-fastapi.store`;
+    
     // WebSocket URL 수정
     const socketUrl = `wss://api.chibbohae-fastapi.store/signaling/ws/${userId}`;
 
