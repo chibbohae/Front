@@ -180,7 +180,7 @@ const Calltest: React.FC<CalltestProps> = ({ onComplete }) => {
             if (event.candidate && currentCallId) {
                 ws.current?.send(JSON.stringify({
                     type: "ice_candidate",
-                    call_id: currentCallId,
+                    // call_id: currentCallId,
                     candidate: event.candidate,
                     caller_id: userId,
                     receiver_id: partnerId,
@@ -275,8 +275,11 @@ const Calltest: React.FC<CalltestProps> = ({ onComplete }) => {
                 type: "offer",
                 caller_id: userId,
                 receiver_id: partnerId,
-                // call_id: callId,
-                // sdp: offer,
+                mediaConstraint: {
+                    "video": false,
+                    "audio": true
+                },
+                sdp: offer,
             }));
         } catch (error) {
             console.error("전화 연결 실패:", error);
@@ -325,7 +328,7 @@ const Calltest: React.FC<CalltestProps> = ({ onComplete }) => {
         console.log("✅ Offer 수락 시작: PeerConnection 설정 중...");
 
         try {
-            // 거절 -> accepted : false
+            // 수락 -> accepted : true
             // return CallResponse(message="통화 수락됨", call_id=call.call_id)
             const response = await axios.post(`${apiUrl}/call/answer`, {
                 caller_id: userId,
@@ -360,16 +363,16 @@ const Calltest: React.FC<CalltestProps> = ({ onComplete }) => {
             ws.current?.send(JSON.stringify({
                 type: "call_answer",
                 caller_id: incomingCall.caller_id,
-                call_id: currentCallId
+                // call_id: currentCallId
             }));
 
-            // ws.current?.send(JSON.stringify({
-            //     type: "answer",
-            //     caller_id: userId,
-            //     receiver_id: incomingCall.caller_id,
-            //     call_id: currentCallId,
-            //     sdp: answer
-            // }));
+            ws.current?.send(JSON.stringify({
+                type: "answer",
+                caller_id: userId,
+                receiver_id: incomingCall.caller_id,
+                // call_id: currentCallId,
+                sdp: answer
+            }));
 
             console.log("📞 Answer 전송 완료", incomingCall.caller_id, "에게");
 
