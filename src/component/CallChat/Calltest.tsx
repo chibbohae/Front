@@ -257,9 +257,6 @@ const Calltest: React.FC<CalltestProps> = ({ onComplete }) => {
             const callId = response.data.call_id;
             setCurrentCallId(callId);
 
-            const offer = await peerConnection.current?.createOffer();
-            await peerConnection.current?.setLocalDescription(offer);
-
             // 2. WebSocket을 통해 수신자에게 incoming_call 이벤트 전송
             ws.current?.send(JSON.stringify({
                 type: "incoming_call",
@@ -268,19 +265,9 @@ const Calltest: React.FC<CalltestProps> = ({ onComplete }) => {
                 // call_id: callId,
                 // sdp: offer,
             }));
+            console.log("incoming_call 전송완");
 
-            // 3. Offer 생성 및 전송
-            console.log("offer: ", offer);
-            ws.current?.send(JSON.stringify({
-                type: "offer",
-                caller_id: userId,
-                receiver_id: partnerId,
-                mediaConstraint: {
-                    "video": false,
-                    "audio": true
-                },
-                sdp: offer,
-            }));
+            
         } catch (error) {
             console.error("전화 연결 실패:", error);
             setStatus("전화 연결 실패");
@@ -342,10 +329,31 @@ const Calltest: React.FC<CalltestProps> = ({ onComplete }) => {
             });
             console.log("수락 answer: ",response.data.message);
 
+            // 3. Offer 생성 및 전송
+            const offer = await peerConnection.current?.createOffer();
+            await peerConnection.current?.setLocalDescription(offer);
+            console.log("offer: ", offer);
+
+            ws.current?.send(JSON.stringify({
+                type: "offer",
+                caller_id: userId,
+                receiver_id: partnerId,
+                mediaConstraint: {
+                    "video": false,
+                    "audio": true
+                },
+                sdp: offer,
+            }));
+            console.log("offer websocket에 전송");
+            
             await createPeerConnection();
 
-            if (!peerConnection.current || !incomingCall.sdp) {
-                console.error("🚨 PeerConnection 생성 실패 또는 SDP 없음");
+            if (!peerConnection.current) {
+                console.error("🚨 PeerConnection 생성 실패");
+                return;
+            }
+            if( !incomingCall.sdp){
+                console.error("SDP 없음");
                 return;
             }
 
