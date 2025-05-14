@@ -243,19 +243,19 @@ const Calltest: React.FC<CalltestProps> = ({ onComplete }) => {
         try {
             // 1. 서버에 통화 요청 - API 엔드포인트 수정
             
-            // const response = await axios.post(`${apiUrl}/call/request`, {
-            //     caller_id: userId,
-            //     receiver_id: partnerId
-            // }, {
-            //     headers: {
-            //         'Content-Type': 'application/json'
-            //         // Access-Control-Allow-Origin 헤더 제거 (CORS 프록시가 처리)
-            //     }
-            // });
+            const response = await axios.post(`${apiUrl}/call/request`, {
+                caller_id: userId,
+                receiver_id: partnerId
+            }, {
+                headers: {
+                    'Content-Type': 'application/json'
+                    // Access-Control-Allow-Origin 헤더 제거 (CORS 프록시가 처리)
+                }
+            });
 
-            // // call_id 저장
-            // const callId = response.data.call_id;
-            // setCurrentCallId(callId);
+            // call_id 저장
+            const callId = response.data.call_id;
+            setCurrentCallId(callId);
 
             const offer = await peerConnection.current?.createOffer();
             await peerConnection.current?.setLocalDescription(offer);
