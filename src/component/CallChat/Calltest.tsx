@@ -363,13 +363,13 @@ const Calltest: React.FC<CalltestProps> = ({ onComplete }) => {
                 call_id: currentCallId
             }));
 
-            ws.current?.send(JSON.stringify({
-                type: "answer",
-                caller_id: userId,
-                receiver_id: incomingCall.caller_id,
-                call_id: currentCallId,
-                sdp: answer
-            }));
+            // ws.current?.send(JSON.stringify({
+            //     type: "answer",
+            //     caller_id: userId,
+            //     receiver_id: incomingCall.caller_id,
+            //     call_id: currentCallId,
+            //     sdp: answer
+            // }));
 
             console.log("📞 Answer 전송 완료", incomingCall.caller_id, "에게");
 
