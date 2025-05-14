@@ -311,6 +311,7 @@ const Calltest: React.FC<CalltestProps> = ({ onComplete }) => {
 
     const acceptOffer = async () => {
         if (!incomingCall) return;
+        console.log(incomingCall);
 
         console.log("✅ Offer 수락 시작: PeerConnection 설정 중...");
 
