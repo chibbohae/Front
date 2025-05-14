@@ -325,6 +325,20 @@ const Calltest: React.FC<CalltestProps> = ({ onComplete }) => {
         console.log("✅ Offer 수락 시작: PeerConnection 설정 중...");
 
         try {
+            // 거절 -> accepted : false
+            // return CallResponse(message="통화 수락됨", call_id=call.call_id)
+            const response = await axios.post(`${apiUrl}/call/answer`, {
+                caller_id: userId,
+                receiver_id: partnerId,
+                accepted: true
+            }, {
+                headers: {
+                    'Content-Type': 'application/json'
+                    // Access-Control-Allow-Origin 헤더 제거 (CORS 프록시가 처리)
+                }
+            });
+            console.log("수락 answer: ",response.data.message);
+
             await createPeerConnection();
 
             if (!peerConnection.current || !incomingCall.sdp) {
@@ -372,6 +386,20 @@ const Calltest: React.FC<CalltestProps> = ({ onComplete }) => {
         if (!incomingCall || !currentCallId) return;
 
         console.log("🚫 Offer 거절");
+
+        // 거절 -> accepted : false
+        // return CallResponse(message="통화 수락됨", call_id=call.call_id)
+        const response = await axios.post(`${apiUrl}/call/answer`, {
+            caller_id: userId,
+            receiver_id: partnerId,
+            accepted: false
+        }, {
+            headers: {
+                'Content-Type': 'application/json'
+                // Access-Control-Allow-Origin 헤더 제거 (CORS 프록시가 처리)
+            }
+        });
+        console.log("거절 answer: ",response.data.message);
 
         ws.current?.send(JSON.stringify({
             type: "call_reject",
