@@ -36,15 +36,21 @@ const Calltest: React.FC<CalltestProps> = ({ onComplete }) => {
         return storedId || "anonymous";
     }, []);
     useEffect(() => {
-        const savedUserId = prompt("당신의 userId를 입력하세요 (예: minchan, sehan)");
-        const savedPartnerId = prompt("상대방 userId를 입력하세요 (예: sehan, minchan)");
+        const existingUserId = localStorage.getItem("userId");
+        const existingPartnerId = localStorage.getItem("partnerId");
 
-        if (savedUserId && savedPartnerId) {
-            localStorage.setItem("userId", savedUserId);
-            localStorage.setItem("partnerId", savedPartnerId);
-            window.location.reload();
+        if (!existingUserId || !existingPartnerId) {
+            const savedUserId = prompt("당신의 userId를 입력하세요 (예: minchan, sehan)");
+            const savedPartnerId = prompt("상대방 userId를 입력하세요 (예: sehan, minchan)");
+
+            if (savedUserId && savedPartnerId) {
+                localStorage.setItem("userId", savedUserId);
+                localStorage.setItem("partnerId", savedPartnerId);
+                window.location.reload();  // ✅ 저장 후 한 번만 새로고침
+            }
         }
     }, []);
+
 
 
     // CORS 프록시 서비스 변경 - cors-anywhere는 현재 제한이 있어 다른 프록시 사용
