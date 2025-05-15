@@ -613,7 +613,7 @@ const Calltest: React.FC<CalltestProps> = ({ onComplete }) => {
 
                     const offer = await peerConnection.current.createOffer();
                     await peerConnection.current.setLocalDescription(offer);
-
+                    setIncomingCall({ caller_id: data.caller_id , sdp : offer});
                     ws.current?.send(JSON.stringify({
                         type: "offer",
                         caller_id: userId,
