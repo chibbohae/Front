@@ -28,6 +28,8 @@ const Calltest: React.FC<CalltestProps> = ({ onComplete }) => {
     const audioChunksRef = useRef<Blob[]>([]);
     const localAudioRef = useRef<HTMLAudioElement | null>(null);
 
+    const acceptOfferRetryCount = useRef(0);
+
     const userId = useMemo(() => {
         let storedId = localStorage.getItem("userId");
 
@@ -470,40 +472,30 @@ const Calltest: React.FC<CalltestProps> = ({ onComplete }) => {
         if (!incomingCall) return;
         console.log("✅ Offer 수락 시작: PeerConnection 설정 중...");
 
-        // 컴포넌트 내부 상태를 사용하여 재시도 횟수 관리
-        const [retryCountState, setRetryCountState] = useState(0);
-
         // SDP 없는 경우 재시도 (최대 5번까지만)
         if (!incomingCall.sdp) {
-            // 컴포넌트 상태 대신 클로저로 재시도 횟수 관리
-            const retryOfferWithCount = (count: number) => {
-                console.warn(`📡 아직 SDP 수신 전... 재시도 예정 (${count + 1}/5)`);
-                
-                if (count < 5) {
-                    // SDP 요청 메시지 보내기 (명시적 요청 추가)
-                    ws.current?.send(JSON.stringify({
-                        type: "request_offer",
-                        caller_id: userId,
-                        receiver_id: incomingCall!.caller_id
-                    }));
-                    
-                    // 재귀 호출 대신 새로운 함수로 다음 재시도 예약
-                    setTimeout(() => {
-                        // 상태가 변경되었을 수 있으니 다시 확인
-                        if (incomingCall && !incomingCall.sdp) {
-                            retryOfferWithCount(count + 1);
-                        }
-                    }, 500);
-                } else {
-                    console.error("SDP를 받지 못했습니다. 통화 취소");
-                    setStatus("통화 연결 실패 - SDP 없음");
-                    cleanupCall();
-                }
-            };
-            
-            // 첫 번째 재시도 시작
-            retryOfferWithCount(0);
-            return;
+            if (acceptOfferRetryCount.current < 5) {
+                acceptOfferRetryCount.current++;
+                console.warn(`📡 SDP 아직 없음. 재시도 ${acceptOfferRetryCount.current}/5`);
+
+                ws.current?.send(JSON.stringify({
+                    type: "request_offer",
+                    caller_id: userId,
+                    receiver_id: incomingCall!.caller_id
+                }));
+
+                setTimeout(() => {
+                    if (incomingCall && !incomingCall.sdp) {
+                        acceptOffer(); // 재귀 아님, 타이머에서 다시 호출
+                    }
+                }, 500);
+                return;
+            } else {
+                console.error("📡 SDP를 못 받음, 통화 실패");
+                setStatus("통화 연결 실패 - SDP 없음");
+                cleanupCall();
+                return;
+            }
         }
 
         try {
@@ -550,6 +542,7 @@ const Calltest: React.FC<CalltestProps> = ({ onComplete }) => {
 
             setStatus("통화 중");
             setIncomingCall(null);
+            acceptOfferRetryCount.current = 0; // 재시도 카운터 초기화
         } catch (error) {
             console.error("🚨 Answer 처리 실패:", error);
             setStatus("통화 연결 실패");
