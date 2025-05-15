@@ -583,6 +583,7 @@ const Calltest: React.FC<CalltestProps> = ({ onComplete }) => {
             // incoming_call 핸들러
             if (data.type === "incoming_call") {
                 (async () =>{
+                    
                     console.log("웹소켓 incoming_call 들어옴");
                     
                     try {
