@@ -591,6 +591,30 @@ const Calltest: React.FC<CalltestProps> = ({ onComplete }) => {
             }
 
             if (data.type === "answer") {
+                (async () => {
+                    console.log("📨 call_answer 수신 → 이제 offer 생성 시작");
+
+                    setStatus("통화 중");
+
+                    await createPeerConnection();
+
+                    if (!peerConnection.current) {
+                        console.error("❌ PeerConnection 생성 실패");
+                        return;
+                    }
+
+                    const offer = await peerConnection.current.createOffer();
+                    await peerConnection.current.setLocalDescription(offer);
+
+                    ws.current?.send(JSON.stringify({
+                        type: "offer",
+                        caller_id: userId,
+                        receiver_id: partnerId,
+                        sdp: offer
+                    }));
+
+                    console.log("📡 offer 전송 완료");
+                })(); // 즉시 실행 async 함수
                 handleAnswer(data);
             }
 
