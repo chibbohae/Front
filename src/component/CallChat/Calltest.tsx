@@ -321,8 +321,8 @@ const Calltest: React.FC<CalltestProps> = ({ onComplete }) => {
             // 수락 -> accepted : true
             // return CallResponse(message="통화 수락됨", call_id=call.call_id)
             const response = await axios.post(`${apiUrl}/call/answer`, {
-                caller_id: userId,
-                receiver_id: partnerId,
+                caller_id: incomingCall.caller_id,  // ✅ 발신자 ID
+                receiver_id: userId,                // ✅ 지금 나 (수신자)
                 accepted: true
             }, {
                 headers: {
