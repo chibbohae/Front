@@ -581,10 +581,21 @@ const Calltest: React.FC<CalltestProps> = ({ onComplete }) => {
             console.log("📨 수신:", data);
 
             if (data.type === "incoming_call") {
-                console.log("웹소켓 incoming_call 들어옴")
-                setIncomingCall({ caller_id: data.caller_id });
-                setCallMessage(`📞 ${data.caller_id} 님이 전화를 걸었습니다`);
-                setCurrentCallId(data.call_id);
+                (async () => {
+                    console.log("웹소켓 incoming_call 들어옴")
+                    await createPeerConnection();
+                    if (!peerConnection.current) {
+                        console.error("❌ PeerConnection 생성 실패");
+                        return;
+                    }
+                    
+                    const offer = await peerConnection.current.createOffer();
+                    await peerConnection.current.setLocalDescription(offer);
+                        
+                    setIncomingCall({ caller_id: data.caller_id });
+                    setCallMessage(`📞 ${data.caller_id} 님이 전화를 걸었습니다`);
+                    setCurrentCallId(data.call_id);
+                })
             }
 
             if (data.type === "offer") {
@@ -613,7 +624,9 @@ const Calltest: React.FC<CalltestProps> = ({ onComplete }) => {
 
                     const offer = await peerConnection.current.createOffer();
                     await peerConnection.current.setLocalDescription(offer);
+                    
                     setIncomingCall({ caller_id: data.caller_id , sdp : offer});
+
                     ws.current?.send(JSON.stringify({
                         type: "offer",
                         caller_id: userId,
