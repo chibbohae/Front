@@ -581,45 +581,25 @@ const Calltest: React.FC<CalltestProps> = ({ onComplete }) => {
             console.log("📨 수신:", data);
 
             if (data.type === "incoming_call") {
+                console.log("웹소켓 incoming_call 들어옴")
                 setIncomingCall({ caller_id: data.caller_id });
                 setCallMessage(`📞 ${data.caller_id} 님이 전화를 걸었습니다`);
                 setCurrentCallId(data.call_id);
             }
 
             if (data.type === "offer") {
+                console.log("웹소켓 offer 들어옴")
                 handleOffer(data);
             }
 
             if (data.type === "answer") {
-                (async () => {
-                    console.log("📨 call_answer 수신 → 이제 offer 생성 시작");
-
-                    setStatus("통화 중");
-
-                    await createPeerConnection();
-
-                    if (!peerConnection.current) {
-                        console.error("❌ PeerConnection 생성 실패");
-                        return;
-                    }
-
-                    const offer = await peerConnection.current.createOffer();
-                    await peerConnection.current.setLocalDescription(offer);
-
-                    ws.current?.send(JSON.stringify({
-                        type: "offer",
-                        caller_id: userId,
-                        receiver_id: partnerId,
-                        sdp: offer
-                    }));
-
-                    console.log("📡 offer 전송 완료");
-                })(); // 즉시 실행 async 함수
+                console.log("웹소켓 answer 들어옴")
                 handleAnswer(data);
             }
 
             if (data.type === "call_answer") {
                 (async () => {
+                    console.log("웹소켓 call_answer 들어옴")
                     console.log("📨 call_answer 수신 → 이제 offer 생성 시작");
 
                     setStatus("통화 중");
