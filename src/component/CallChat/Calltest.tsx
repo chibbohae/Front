@@ -473,7 +473,7 @@ const Calltest: React.FC<CalltestProps> = ({ onComplete }) => {
 
                 ws.current?.send(JSON.stringify({
                     type: "call_end",
-                    call_id: userId,
+                    caller_id: userId,
                     receiver_id: incomingCall ? incomingCall.caller_id : partnerId
                 }));
 
