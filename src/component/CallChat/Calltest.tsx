@@ -25,28 +25,27 @@ const Calltest: React.FC<CalltestProps> = ({ onComplete }) => {
     const localAudioRef = useRef<HTMLAudioElement | null>(null);
 
     const userId = useMemo(() => {
-        let storedId = localStorage.getItem("userId");
-
-        if (!storedId) {
-            storedId = `user_${Math.floor(Math.random() * 1000)}`;
-            localStorage.setItem("userId", "sehan");
-        }
-
+        const storedId = localStorage.getItem("userId");
         console.log("✅ 설정된 userId:", storedId);
-        return storedId;
+        return storedId || "anonymous";
     }, []);
 
     const partnerId = useMemo(() => {
-        let storedId = localStorage.getItem("partnerId");
-
-        if (!storedId) {
-            storedId = `user_${Math.floor(Math.random() * 1000)}`;
-            localStorage.setItem("partnerId", "se");
-        }
-
+        const storedId = localStorage.getItem("partnerId");
         console.log("✅ 설정된 partnerId:", storedId);
-        return storedId;
+        return storedId || "anonymous";
     }, []);
+    useEffect(() => {
+        const savedUserId = prompt("당신의 userId를 입력하세요 (예: minchan, sehan)");
+        const savedPartnerId = prompt("상대방 userId를 입력하세요 (예: sehan, minchan)");
+
+        if (savedUserId && savedPartnerId) {
+            localStorage.setItem("userId", savedUserId);
+            localStorage.setItem("partnerId", savedPartnerId);
+            window.location.reload();
+        }
+    }, []);
+
 
     // CORS 프록시 서비스 변경 - cors-anywhere는 현재 제한이 있어 다른 프록시 사용
     // const apiUrl = 'https://adc9-61-42-109-13.ngrok-free.app' // "http://localhost:5001"; // 다른 CORS 프록시 사용
