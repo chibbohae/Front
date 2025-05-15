@@ -591,11 +591,11 @@ const Calltest: React.FC<CalltestProps> = ({ onComplete }) => {
                     
                     const offer = await peerConnection.current.createOffer();
                     await peerConnection.current.setLocalDescription(offer);
-                        
+
                     setIncomingCall({ caller_id: data.caller_id });
                     setCallMessage(`📞 ${data.caller_id} 님이 전화를 걸었습니다`);
                     setCurrentCallId(data.call_id);
-                })
+                }) ();
             }
 
             if (data.type === "offer") {
