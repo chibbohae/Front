@@ -178,6 +178,8 @@ const Calltest: React.FC<CalltestProps> = ({ onComplete }) => {
 
         peerConnection.current.onicecandidate = (event) => {
             if (event.candidate && currentCallId) {
+                console.log("❄️ ICE 후보 전송 시도:", event.candidate);
+                
                 ws.current?.send(JSON.stringify({
                     type: "ice_candidate",
                     // call_id: currentCallId,
@@ -329,6 +331,8 @@ const Calltest: React.FC<CalltestProps> = ({ onComplete }) => {
                 }
             });
             console.log("수락 answer: ",response.data.message);
+            
+            await createPeerConnection();
 
             // 3. Offer 생성 및 전송
             const offer = await peerConnection.current?.createOffer();
@@ -346,8 +350,6 @@ const Calltest: React.FC<CalltestProps> = ({ onComplete }) => {
                 sdp: offer,
             }));
             console.log("offer websocket에 전송");
-            
-            await createPeerConnection();
 
             if (!peerConnection.current) {
                 console.error("🚨 PeerConnection 생성 실패");
@@ -460,6 +462,7 @@ const Calltest: React.FC<CalltestProps> = ({ onComplete }) => {
         }
 
         setIncomingCall(null);
+        setCurrentCallId(null);
     };
 
     const endCall = async () => {
