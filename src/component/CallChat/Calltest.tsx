@@ -686,7 +686,6 @@ const Calltest: React.FC<CalltestProps> = ({ onComplete }) => {
                     <button 
                         onClick={acceptOffer}   
                         className="p-2 m-2 text-white bg-green-500 rounded"
-                        disabled={!incomingCall.sdp} // offer가 와야 활성화
                     >
                         ✅ 받기
                     </button>
