@@ -260,7 +260,7 @@ const Calltest: React.FC<CalltestProps> = ({ onComplete }) => {
             // 2. WebSocket을 통해 수신자에게 incoming_call 이벤트 전송
             ws.current?.send(JSON.stringify({
                 type: "incoming_call",
-                caller_id: userId,
+                // caller_id: userId,
                 receiver_id: partnerId,
                 // call_id: callId,
                 // sdp: offer,
@@ -339,7 +339,7 @@ const Calltest: React.FC<CalltestProps> = ({ onComplete }) => {
                 type: "offer",
                 caller_id: userId,
                 receiver_id: partnerId,
-                mediaConstraint: {
+                media_constraints: {
                     "video": false,
                     "audio": true
                 },
@@ -473,7 +473,7 @@ const Calltest: React.FC<CalltestProps> = ({ onComplete }) => {
 
                 ws.current?.send(JSON.stringify({
                     type: "call_end",
-                    call_id: currentCallId,
+                    call_id: userId,
                     receiver_id: incomingCall ? incomingCall.caller_id : partnerId
                 }));
 
