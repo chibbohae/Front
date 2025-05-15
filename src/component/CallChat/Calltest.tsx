@@ -584,29 +584,33 @@ const Calltest: React.FC<CalltestProps> = ({ onComplete }) => {
             }
 
             if (data.type === "offer") {
-                handleOffer(data);
+                console.log("웹소켓 offer 들어옴");
+
+                // ✅ 직접 sdp 사용
                 (async () => {
-                    console.log("웹소켓 offer 들어옴")
-                    
-                    if (!incomingCall || !peerConnection.current) {
-                        console.log("incomingCall 없음 또는 peerConnection이 null입니다!!");
+                    if (!peerConnection.current) {
+                        console.log("peerConnection이 null입니다!!");
                         return;
                     }
-                    // Answer 생성
-                    const answer = await peerConnection.current.createAnswer();
-                    console.log("✅ Answer 생성됨");
 
+                    await peerConnection.current.setRemoteDescription(new RTCSessionDescription(data.sdp));
+                    console.log("📡 Remote SDP 설정 완료");
+
+                    const answer = await peerConnection.current.createAnswer();
                     await peerConnection.current.setLocalDescription(answer);
-                    console.log("📨 Local SDP 설정 완료");
-                    
-                    // A에게 answer 전송
+                    console.log("✅ Answer 생성 및 설정 완료");
+
+                    // 상대방(A)에게 answer 전송
                     ws.current?.send(JSON.stringify({
                         type: "answer",
                         caller_id: userId,
-                        receiver_id: incomingCall.caller_id,
+                        receiver_id: data.caller_id, // ✅ 이건 data에서 직접
                         sdp: answer
                     }));
                 })();
+
+                // 🔍 선택적으로 상태 업데이트는 나중에
+                setIncomingCall({ caller_id: data.caller_id, sdp: data.sdp });
             }
 
             if (data.type === "answer") {
