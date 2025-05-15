@@ -351,13 +351,80 @@ const Calltest: React.FC<CalltestProps> = ({ onComplete }) => {
     //         cleanupCall();
     //     }
     // };
+
+    // const acceptOffer = async () => {
+    //     if (!incomingCall) return;
+
+    //     console.log("✅ Offer 수락 시작");
+
+    //     try {
+    //         // 서버에 수락 전송
+    //         const response = await axios.post(`${apiUrl}/call/answer`, {
+    //             caller_id: userId,
+    //             receiver_id: incomingCall.caller_id,
+    //             accepted: true
+    //         }, {
+    //             headers: {
+    //                 'Content-Type': 'application/json'
+    //             }
+    //         });
+
+    //         console.log("📡 수락 API 응답:", response.data.message);
+
+    //         // PeerConnection 생성
+    //         await createPeerConnection();
+
+    //         if (!peerConnection.current) {
+    //             console.error("❌ PeerConnection 없음");
+    //             return;
+    //         }
+
+    //         // 상대방 Offer를 설정
+    //         if (incomingCall.sdp) {
+    //             await peerConnection.current.setRemoteDescription(
+    //                 new RTCSessionDescription(incomingCall.sdp)
+    //             );
+    //             console.log("📡 Remote SDP 설정 완료");
+    //         } else {
+    //             console.error("❌ 수신된 SDP가 없습니다");
+    //             return;
+    //         }
+
+    //         // Answer 생성 및 설정
+    //         const answer = await peerConnection.current.createAnswer();
+    //         await peerConnection.current.setLocalDescription(answer);
+
+    //         // A에게 answer 전송
+    //         ws.current?.send(JSON.stringify({
+    //             type: "answer",
+    //             caller_id: userId,
+    //             receiver_id: incomingCall.caller_id,
+    //             sdp: answer
+    //         }));
+
+    //         // WebSocket으로 call_answer 알림
+    //         ws.current?.send(JSON.stringify({
+    //             type: "call_answer",
+    //             caller_id: userId,
+    //             receiver_id: incomingCall.caller_id
+    //         }));
+
+    //         setStatus("통화 중");
+    //         setIncomingCall(null);
+    //     } catch (error) {
+    //         console.error("🚨 통화 수락 처리 중 오류:", error);
+    //         setStatus("통화 연결 실패");
+    //         cleanupCall();
+    //     }
+    // };
+
     const acceptOffer = async () => {
         if (!incomingCall) return;
 
         console.log("✅ Offer 수락 시작");
 
         try {
-            // 서버에 수락 전송
+            // 1. 서버에 수락 전송
             const response = await axios.post(`${apiUrl}/call/answer`, {
                 caller_id: userId,
                 receiver_id: incomingCall.caller_id,
@@ -370,46 +437,18 @@ const Calltest: React.FC<CalltestProps> = ({ onComplete }) => {
 
             console.log("📡 수락 API 응답:", response.data.message);
 
-            // PeerConnection 생성
+            // 2. PeerConnection 생성만 (offer는 나중에 옴)
             await createPeerConnection();
 
-            if (!peerConnection.current) {
-                console.error("❌ PeerConnection 없음");
-                return;
-            }
-
-            // 상대방 Offer를 설정
-            if (incomingCall.sdp) {
-                await peerConnection.current.setRemoteDescription(
-                    new RTCSessionDescription(incomingCall.sdp)
-                );
-                console.log("📡 Remote SDP 설정 완료");
-            } else {
-                console.error("❌ 수신된 SDP가 없습니다");
-                return;
-            }
-
-            // Answer 생성 및 설정
-            const answer = await peerConnection.current.createAnswer();
-            await peerConnection.current.setLocalDescription(answer);
-
-            // A에게 answer 전송
-            ws.current?.send(JSON.stringify({
-                type: "answer",
-                caller_id: userId,
-                receiver_id: incomingCall.caller_id,
-                sdp: answer
-            }));
-
-            // WebSocket으로 call_answer 알림
+            // 3. WebSocket으로 call_answer 전송 (A에게 알림)
             ws.current?.send(JSON.stringify({
                 type: "call_answer",
                 caller_id: userId,
                 receiver_id: incomingCall.caller_id
             }));
 
-            setStatus("통화 중");
-            setIncomingCall(null);
+            setStatus("통화 중 (offer 대기 중)");
+            setCallMessage("상대방 연결 중...");
         } catch (error) {
             console.error("🚨 통화 수락 처리 중 오류:", error);
             setStatus("통화 연결 실패");
