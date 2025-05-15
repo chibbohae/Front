@@ -14,6 +14,7 @@ const Calltest: React.FC<CalltestProps> = ({ onComplete }) => {
     const [recordedAudioUrl, setRecordedAudioUrl] = useState<string | null>(null);
     const [callEnded, setCallEnded] = useState(false);
     const [callerIsMe, setCallerIsMe] = useState(false);
+    const [offer, setOffer] = useState<RTCSessionDescriptionInit | null>(null);
 
     // References
     const peerConnection = useRef<RTCPeerConnection | null>(null);
@@ -589,10 +590,11 @@ const Calltest: React.FC<CalltestProps> = ({ onComplete }) => {
                         return;
                     }
                     
-                    const offer = await peerConnection.current.createOffer();
-                    await peerConnection.current.setLocalDescription(offer);
+                    const offer_call = await peerConnection.current.createOffer();
+                    await peerConnection.current.setLocalDescription(offer_call);
+                    setOffer(offer_call);
 
-                    setIncomingCall({ caller_id: data.caller_id, sdp : offer });
+                    setIncomingCall({ caller_id: data.caller_id, sdp : offer_call });
                     setCallMessage(`📞 ${data.caller_id} 님이 전화를 걸었습니다`);
                     setCurrentCallId(data.call_id);
                 }) ();
@@ -614,19 +616,7 @@ const Calltest: React.FC<CalltestProps> = ({ onComplete }) => {
                     console.log("📨 call_answer 수신 → 이제 offer 생성 시작");
 
                     setStatus("통화 중");
-
-                    await createPeerConnection();
-
-                    if (!peerConnection.current) {
-                        console.error("❌ PeerConnection 생성 실패");
-                        return;
-                    }
-
-                    const offer = await peerConnection.current.createOffer();
-                    await peerConnection.current.setLocalDescription(offer);
-                    
-                    setIncomingCall({ caller_id: data.caller_id , sdp : offer});
-
+              
                     ws.current?.send(JSON.stringify({
                         type: "offer",
                         caller_id: userId,
