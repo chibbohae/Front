@@ -288,36 +288,11 @@ const Calltest: React.FC<CalltestProps> = ({ onComplete }) => {
         }
     };
 
-
-    // const handleOffer = async (data: { from: string; sdp: RTCSessionDescriptionInit; call_id: string }) => {
-    //     try {
-    //         console.log("📡 Offer 수신:", data);
-
-    //         // SDP 정보를 incomingCall에 업데이트
-    //         if (incomingCall && incomingCall.caller_id === data.from) {
-    //             console.log("✅ 기존 통화 요청에 SDP 정보 추가");
-    //             setIncomingCall(prev => prev ? { ...prev, sdp: data.sdp } : null);
-    //         } else {
-    //             // 새 통화 요청인 경우
-    //             console.log("✅ 새 통화 요청과 함께 SDP 정보 설정");
-    //             setIncomingCall({ caller_id: data.from, sdp: data.sdp });
-    //             setCurrentCallId(data.call_id);
-    //             setCallMessage(`📞 ${data.from} 님이 전화를 걸었습니다!`);
-    //         }
-    //     } catch (error) {
-    //         console.error("🚨 Offer 처리 실패:", error);
-    //     }
-    // };
-
     // const acceptOffer = async () => {
     //     if (!incomingCall) return;
     //     console.log(incomingCall);
 
-    //     console.log("✅ Offer 수락 시작: PeerConnection 설정 중...");
-
-    //     try {
-    //         // 수락 -> accepted : true
-    //         // return CallResponse(message="통화 수락됨", call_id=call.call_id)
+    //     // 수락 → 서버에 수락 전송
     //         const response = await axios.post(`${apiUrl}/call/answer`, {
     //             caller_id: userId,
     //             receiver_id: partnerId,
@@ -325,65 +300,48 @@ const Calltest: React.FC<CalltestProps> = ({ onComplete }) => {
     //         }, {
     //             headers: {
     //                 'Content-Type': 'application/json'
-    //                 // Access-Control-Allow-Origin 헤더 제거 (CORS 프록시가 처리)
     //             }
     //         });
-    //         console.log("수락 answer: ",response.data.message);
+    //         console.log("수락 answer: ", response.data.message);
 
-    //         // 3. Offer 생성 및 전송
-    //         const offer = await peerConnection.current?.createOffer();
-    //         await peerConnection.current?.setLocalDescription(offer);
-    //         console.log("offer: ", offer);
+    //     console.log("✅ Offer 수락 시작: PeerConnection 설정 중...");
 
-    //         ws.current?.send(JSON.stringify({
-    //             type: "offer",
-    //             caller_id: userId,
-    //             receiver_id: partnerId,
-    //             mediaConstraint: {
-    //                 "video": false,
-    //                 "audio": true
-    //             },
-    //             sdp: offer,
-    //         }));
-    //         console.log("offer websocket에 전송");
-
+    //     try {
+    //         // PeerConnection 생성 및 오디오 연결
     //         await createPeerConnection();
 
     //         if (!peerConnection.current) {
     //             console.error("🚨 PeerConnection 생성 실패");
     //             return;
     //         }
-    //         if( !incomingCall.sdp){
-    //             console.error("SDP 없음");
+
+    //         if (!incomingCall.sdp) {
+    //             console.error("❌ SDP 없음");
     //             return;
     //         }
 
     //         console.log("PeerConnection 생성됨:", peerConnection.current.signalingState);
 
-    //         await peerConnection.current.setRemoteDescription(new RTCSessionDescription(incomingCall.sdp));
-    //         console.log("Remote SDP 설정 완료");
+    //         // A가 보낸 Offer를 세팅
+    //         await peerConnection.current.setRemoteDescription(
+    //             new RTCSessionDescription(incomingCall.sdp)
+    //         );
+    //         console.log("📡 Remote SDP 설정 완료");
 
-    //         const answer = await peerConnection.current.createAnswer();
-    //         console.log("Answer 생성됨:", answer);
-
-    //         await peerConnection.current.setLocalDescription(answer);
-    //         console.log("Local SDP 설정 완료");
+    //         // // A에게 answer 전송
+    //         // ws.current?.send(JSON.stringify({
+    //         //     type: "answer",
+    //         //     caller_id: userId,
+    //         //     receiver_id: incomingCall.caller_id,
+    //         //     sdp: answer
+    //         // }));
 
     //         ws.current?.send(JSON.stringify({
     //             type: "call_answer",
-    //             caller_id: incomingCall.caller_id,
-    //             // call_id: currentCallId
+    //             caller_id: incomingCall.caller_id
     //         }));
 
-    //         ws.current?.send(JSON.stringify({
-    //             type: "answer",
-    //             caller_id: userId,
-    //             receiver_id: incomingCall.caller_id,
-    //             // call_id: currentCallId,
-    //             sdp: answer
-    //         }));
-
-    //         console.log("📞 Answer 전송 완료", incomingCall.caller_id, "에게");
+    //         console.log("📞 Answer 전송 완료 →", incomingCall.caller_id);
 
     //         setStatus("통화 중");
     //         setIncomingCall(null);
@@ -393,77 +351,41 @@ const Calltest: React.FC<CalltestProps> = ({ onComplete }) => {
     //         cleanupCall();
     //     }
     // };
-
     const acceptOffer = async () => {
         if (!incomingCall) return;
-        console.log(incomingCall);
 
-        console.log("✅ Offer 수락 시작: PeerConnection 설정 중...");
+        console.log("✅ Offer 수락 시작");
 
         try {
-            // 수락 → 서버에 수락 전송
+            // 1. 서버에 수락 전송
             const response = await axios.post(`${apiUrl}/call/answer`, {
-                caller_id: userId,
-                receiver_id: partnerId,
+                caller_id: userId,       // 내가 (B가) 받는 입장
+                receiver_id: incomingCall.caller_id, // A가 전화 건 사람
                 accepted: true
             }, {
                 headers: {
                     'Content-Type': 'application/json'
                 }
             });
-            console.log("수락 answer: ", response.data.message);
 
-            // PeerConnection 생성 및 오디오 연결
-            await createPeerConnection();
+            console.log("📡 수락 API 응답:", response.data.message);
 
-            if (!peerConnection.current) {
-                console.error("🚨 PeerConnection 생성 실패");
-                return;
-            }
-
-            if (!incomingCall.sdp) {
-                console.error("❌ SDP 없음");
-                return;
-            }
-
-            console.log("PeerConnection 생성됨:", peerConnection.current.signalingState);
-
-            // A가 보낸 Offer를 세팅
-            await peerConnection.current.setRemoteDescription(
-                new RTCSessionDescription(incomingCall.sdp)
-            );
-            console.log("📡 Remote SDP 설정 완료");
-
-            // Answer 생성
-            const answer = await peerConnection.current.createAnswer();
-            console.log("✅ Answer 생성됨");
-
-            await peerConnection.current.setLocalDescription(answer);
-            console.log("📨 Local SDP 설정 완료");
-
-            // A에게 answer 전송
+            // 2. WebSocket으로 call_answer 전송 (A에게 알려줌)
             ws.current?.send(JSON.stringify({
                 type: "call_answer",
-                caller_id: incomingCall.caller_id
+                caller_id: userId,              // 내가 응답자 (B)
+                receiver_id: incomingCall.caller_id // A에게 알려야 함
             }));
-
-            ws.current?.send(JSON.stringify({
-                type: "answer",
-                caller_id: userId,
-                receiver_id: incomingCall.caller_id,
-                sdp: answer
-            }));
-
-            console.log("📞 Answer 전송 완료 →", incomingCall.caller_id);
 
             setStatus("통화 중");
-            setIncomingCall(null);
+            setIncomingCall(null); // 수신 상태 해제
         } catch (error) {
-            console.error("🚨 Answer 처리 실패:", error);
+            console.error("🚨 통화 수락 처리 중 오류:", error);
             setStatus("통화 연결 실패");
             cleanupCall();
         }
     };
+
 
     const rejectOffer = async () => {
         if (!incomingCall || !currentCallId) return;
@@ -582,41 +504,39 @@ const Calltest: React.FC<CalltestProps> = ({ onComplete }) => {
 
             // incoming_call 핸들러
             if (data.type === "incoming_call") {
-                (async () =>{
-                    
-                    console.log("웹소켓 incoming_call 들어옴");
-                    
-                    try {
-                        // PeerConnection 생성
-                        await createPeerConnection();
-                        
-                        if (!peerConnection.current) {
-                            console.error("PeerConnection 생성 실패");
-                            return;
-                        }
-                        
-                        // 수신자(B)가 먼저 offer 생성
-                        const localOffer = await peerConnection.current.createOffer();
-                        await peerConnection.current.setLocalDescription(localOffer);
-                        
-                        // offer를 incoming_call과 함께 저장
-                        setIncomingCall({ 
-                            caller_id: data.caller_id, 
-                            sdp: localOffer  // 로컬에서 생성한 offer (실제 call flow와는 다름)
-                        });
-                        
-                        setCallMessage(`📞 ${data.caller_id} 님이 전화를 걸었습니다`);
-                        setCurrentCallId(data.call_id);
-                    } catch (error) {
-                        console.error("incoming_call 처리 실패:", error);
-                    }
-                })();
-                
+                console.log("☎️ 전화가 도착했습니다");
+
+                // ✅ 상태만 저장
+                setIncomingCall({ caller_id: data.caller_id }); // sdp 없이
+                setCurrentCallId(data.call_id);
+                setCallMessage(`📞 ${data.caller_id} 님이 전화를 걸었습니다`);
             }
 
             if (data.type === "offer") {
-                console.log("웹소켓 offer 들어옴")
-                handleOffer(data);
+                (async () => {
+                    console.log("웹소켓 offer 들어옴")
+                    
+                    if (!incomingCall || !peerConnection.current) {
+                        console.log("incomingCall 없음 또는 peerConnection이 null입니다!!");
+                        return;
+                    }
+                    // Answer 생성
+                    const answer = await peerConnection.current.createAnswer();
+                    console.log("✅ Answer 생성됨");
+
+                    await peerConnection.current.setLocalDescription(answer);
+                    console.log("📨 Local SDP 설정 완료");
+                    
+                    // A에게 answer 전송
+                    ws.current?.send(JSON.stringify({
+                        type: "answer",
+                        caller_id: userId,
+                        receiver_id: incomingCall.caller_id,
+                        sdp: answer
+                    }));
+
+                    handleOffer(data);
+                })();
             }
 
             if (data.type === "answer") {
@@ -624,9 +544,39 @@ const Calltest: React.FC<CalltestProps> = ({ onComplete }) => {
                 handleAnswer(data);
             }
 
+            // if (data.type === "call_answer") {
+            //     (async () => {
+            //         console.log("웹소켓 call_answer 들어옴")
+            //         console.log("📨 call_answer 수신 → 이제 offer 생성 시작");
+
+            //         setStatus("통화 중");
+
+            //         await createPeerConnection();
+
+            //         if (!peerConnection.current) {
+            //             console.error("❌ PeerConnection 생성 실패");
+            //             return;
+            //         }
+
+            //         const offer = await peerConnection.current.createOffer();
+            //         await peerConnection.current.setLocalDescription(offer);
+                    
+            //         setIncomingCall({ caller_id: data.caller_id , sdp : offer});
+
+            //         ws.current?.send(JSON.stringify({
+            //             type: "offer",
+            //             caller_id: userId,
+            //             receiver_id: partnerId,
+            //             sdp: offer
+            //         }));
+
+            //         console.log("📡 offer 전송 완료");
+            //     })(); // 즉시 실행 async 함수
+            // }
+
             if (data.type === "call_answer") {
                 (async () => {
-                    console.log("웹소켓 call_answer 들어옴")
+                    console.log("웹소켓 call_answer 들어옴");
                     console.log("📨 call_answer 수신 → 이제 offer 생성 시작");
 
                     setStatus("통화 중");
@@ -640,8 +590,6 @@ const Calltest: React.FC<CalltestProps> = ({ onComplete }) => {
 
                     const offer = await peerConnection.current.createOffer();
                     await peerConnection.current.setLocalDescription(offer);
-                    
-                    setIncomingCall({ caller_id: data.caller_id , sdp : offer});
 
                     ws.current?.send(JSON.stringify({
                         type: "offer",
@@ -651,7 +599,7 @@ const Calltest: React.FC<CalltestProps> = ({ onComplete }) => {
                     }));
 
                     console.log("📡 offer 전송 완료");
-                })(); // 즉시 실행 async 함수
+                })();
             }
 
             if (data.type === "call_reject") {
