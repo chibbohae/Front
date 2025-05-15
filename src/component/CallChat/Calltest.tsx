@@ -14,7 +14,6 @@ const Calltest: React.FC<CalltestProps> = ({ onComplete }) => {
     const [recordedAudioUrl, setRecordedAudioUrl] = useState<string | null>(null);
     const [callEnded, setCallEnded] = useState(false);
     const [callerIsMe, setCallerIsMe] = useState(false);
-    const [offer, setOffer] = useState<RTCSessionDescriptionInit | null>(null);
 
     // References
     const peerConnection = useRef<RTCPeerConnection | null>(null);
@@ -581,23 +580,37 @@ const Calltest: React.FC<CalltestProps> = ({ onComplete }) => {
             const data = JSON.parse(event.data);
             console.log("📨 수신:", data);
 
+            // incoming_call 핸들러
             if (data.type === "incoming_call") {
-                (async () => {
-                    console.log("웹소켓 incoming_call 들어옴")
-                    await createPeerConnection();
-                    if (!peerConnection.current) {
-                        console.error("❌ PeerConnection 생성 실패");
-                        return;
-                    }
+                (async () =>{
+                    console.log("웹소켓 incoming_call 들어옴");
                     
-                    const offer_call = await peerConnection.current.createOffer();
-                    await peerConnection.current.setLocalDescription(offer_call);
-                    setOffer(offer_call);
-
-                    setIncomingCall({ caller_id: data.caller_id, sdp : offer_call });
-                    setCallMessage(`📞 ${data.caller_id} 님이 전화를 걸었습니다`);
-                    setCurrentCallId(data.call_id);
-                }) ();
+                    try {
+                        // PeerConnection 생성
+                        await createPeerConnection();
+                        
+                        if (!peerConnection.current) {
+                            console.error("PeerConnection 생성 실패");
+                            return;
+                        }
+                        
+                        // 수신자(B)가 먼저 offer 생성
+                        const localOffer = await peerConnection.current.createOffer();
+                        await peerConnection.current.setLocalDescription(localOffer);
+                        
+                        // offer를 incoming_call과 함께 저장
+                        setIncomingCall({ 
+                            caller_id: data.caller_id, 
+                            sdp: localOffer  // 로컬에서 생성한 offer (실제 call flow와는 다름)
+                        });
+                        
+                        setCallMessage(`📞 ${data.caller_id} 님이 전화를 걸었습니다`);
+                        setCurrentCallId(data.call_id);
+                    } catch (error) {
+                        console.error("incoming_call 처리 실패:", error);
+                    }
+                })();
+                
             }
 
             if (data.type === "offer") {
@@ -616,7 +629,19 @@ const Calltest: React.FC<CalltestProps> = ({ onComplete }) => {
                     console.log("📨 call_answer 수신 → 이제 offer 생성 시작");
 
                     setStatus("통화 중");
-              
+
+                    await createPeerConnection();
+
+                    if (!peerConnection.current) {
+                        console.error("❌ PeerConnection 생성 실패");
+                        return;
+                    }
+
+                    const offer = await peerConnection.current.createOffer();
+                    await peerConnection.current.setLocalDescription(offer);
+                    
+                    setIncomingCall({ caller_id: data.caller_id , sdp : offer});
+
                     ws.current?.send(JSON.stringify({
                         type: "offer",
                         caller_id: userId,
