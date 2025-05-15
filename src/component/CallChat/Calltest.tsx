@@ -659,7 +659,11 @@ const Calltest: React.FC<CalltestProps> = ({ onComplete }) => {
             {incomingCall ? (
                 <div className="p-4 text-center bg-gray-200 rounded shadow">
                     <p>📞 {incomingCall.caller_id} 님이 전화를 걸었습니다</p>
-                    <button onClick={acceptOffer} className="p-2 m-2 text-white bg-green-500 rounded">
+                    <button 
+                        onClick={acceptOffer}   
+                        className="p-2 m-2 text-white bg-green-500 rounded"
+                        disabled={!incomingCall.sdp} // offer가 와야 활성화
+                    >
                         ✅ 받기
                     </button>
                     <button onClick={rejectOffer} className="p-2 m-2 text-white bg-red-500 rounded">
